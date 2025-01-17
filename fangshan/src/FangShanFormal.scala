@@ -13,7 +13,9 @@ import chisel3.util.circt.dpi.{RawClockedNonVoidFunctionCall, RawUnclockedNonVoi
 import chisel3.util.{Counter, HasExtModuleInline, RegEnable, Valid}
 import chisel3.layers.Verification.Assume
 import chisel3.ltl.AssumeProperty
+import fangshan._
 
+/*
 object FangShanFormalParameter {
   implicit def rwP: upickle.default.ReadWriter[FangShanFormalParameter] =
     upickle.default.macroRW
@@ -32,7 +34,7 @@ class FangShanFormalOM(parameter: FangShanFormalParameter) extends Class {
 
 class FangShanFormalInterface(parameter: FangShanFormalParameter) extends Bundle {
   val clock = Input(Clock())
-  val reset = Input(if (parameter.fangshanParameter.useAsyncReset) AsyncReset() else Bool())
+  val reset = Input(Bool())
   val input = Flipped(Valid(new Bundle {
     val x = UInt(parameter.fangshanParameter.width.W)
     val y = UInt(parameter.fangshanParameter.width.W)
@@ -96,3 +98,4 @@ class FangShanFormal(val parameter: FangShanFormalParameter)
     label = Some("FangShan_COVER_BACK_PRESSURE")
   )
 }
+ */
