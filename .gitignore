@@ -13,8 +13,15 @@ result*
 fangshan-sim-result/
 /dependencies/
 target/
+emitOut/
 
 *.vcd
 *.fst
 *.fsdb
 *.log
+
+# Chisel
+*.fir
+*.mlir
+*.anno.json
+*.s
