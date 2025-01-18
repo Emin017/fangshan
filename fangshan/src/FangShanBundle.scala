@@ -4,8 +4,7 @@ import chisel3._
 import chisel3.util._
 
 class CtrlSigBundle extends Bundle {
-  val isAddi = Bool()
-  val id     = UInt(4.W)
+  val rd = UInt(4.W)
 }
 
 class ALUInputBundle extends Bundle {

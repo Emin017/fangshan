@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: Unlicense
 // SPDX-FileCopyrightText: 2024 Jiuyang Liu <liu@jiuyang.me>
-package org.chipsalliance.fangshan.elaborator
+package fangshan.elaborator
 
-/*
 import mainargs._
-import org.chipsalliance.fangshan.{FangShanTestBench, FangShanTestBenchParameter, TestVerbatimParameter}
-import org.chipsalliance.fangshan.elaborator.FangShanMain.FangShanParameterMain
+import fangshan.{FangShanTestBench, FangShanTestBenchParameter, TestVerbatimParameter}
+import fangshan.elaborator.FangShanMain.FangShanParameterMain
 import chisel3.experimental.util.SerializableModuleElaborator
 
 object FangShanTestBenchMain extends SerializableModuleElaborator {
@@ -73,5 +72,3 @@ object FangShanTestBenchMain extends SerializableModuleElaborator {
 
   def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args.toIndexedSeq)
 }
-
- */
