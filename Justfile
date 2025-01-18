@@ -16,6 +16,7 @@ emit: build
 
 arcilator: emit
   {{ ARC } FangShan.mlir | {{ LLC }} -O3 -o FangShan.s
+  {{ ARC }} FangShan.mlir | {{ LLC }} -O3 -o FangShan.s
 
 reformat:
     @echo "Reformatting..."
