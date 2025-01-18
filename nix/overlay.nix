@@ -25,10 +25,6 @@ final: prev: {
   # faster strip-undetereminism
   add-determinism = final.callPackage ./pkgs/add-determinism { };
 
-  vcs-fhs-env = final.callPackage ./pkgs/vcs-fhs-env.nix { inherit getEnv'; };
-
-  cds-fhs-env = final.callPackage ./pkgs/cds-fhs-env.nix { inherit getEnv'; };
-
   projectDependencies = final.callPackage ./pkgs/project-dependencies.nix { };
 
   fangshan = final.callPackage ./fangshan { };

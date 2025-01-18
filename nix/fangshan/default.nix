@@ -35,20 +35,6 @@ in
   verilated-trace = scope.verilated.override {
     dpi-lib = scope.verilated.dpi-lib.override { enable-trace = true; };
   };
-  vcs = scope.callPackage ./vcs.nix {
-    dpi-lib = scope.tb-dpi-lib.override {
-      sv2023 = false;
-      vpi = true;
-      timescale = 1000;
-    };
-    rtl = scope.tb-rtl.override {
-      enable-layers =
-        [ "Verification" "Verification.Assert" "Verification.Cover" ];
-    };
-  };
-  vcs-trace = scope.vcs.override {
-    dpi-lib = scope.vcs.dpi-lib.override { enable-trace = true; };
-  };
 
   # Formal
   formal-compiled = scope.callPackage ./fangshan.nix { target = formalTarget; };
