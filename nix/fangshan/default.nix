@@ -29,7 +29,7 @@ in
   tb-dpi-lib = scope.callPackage ./dpi-lib.nix { inherit dpiLibName; };
 
   verilated = scope.callPackage ./verilated.nix {
-    rtl = scope.tb-rtl.override { enable-layers = [ "Verification" ]; };
+    rtl = scope.tb-rtl;
     dpi-lib = scope.tb-dpi-lib;
   };
   verilated-trace = scope.verilated.override {
