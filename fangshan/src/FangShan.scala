@@ -119,15 +119,6 @@ class FangShan(val parameter: FangShanParameter)
 
   io.output := exu.io.output.bits.update
 
-  class test extends Module {
-    val io = IO(new Bundle {
-      val output = Output(Bool())
-    })
-    io.output := true.B
-    dontTouch(io.output)
-  }
-  val t = Module(new test)
-  dontTouch(t.io.output)
   dontTouch(io.output)
   dontTouch(ifu.io.output)
   dontTouch(idu.io.input)
