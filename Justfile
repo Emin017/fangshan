@@ -5,14 +5,19 @@ ELABORATOR := "java -cp ./out/elaborator/assembly.dest/out.jar"
 FIRTOOL := "firtool"
 ARC := "arcilator"
 LLC := "llc"
-OUTDIR := "emitOut"
+
+OUTDIR := "fangshan-sim-result"
 
 BUILDNAME := "FangShan"
 
 EMUNAME := "FangShanTestBench"
-EMUDIR := "fangshan-sim-result"
 
 DPIDIR := "fangshanemu"
+
+export DESIGN_DATA_WIDTH := "32"
+export DESIGN_TIMEOUT := "1000"
+export DESIGN_TEST_SIZE := "100"
+export CLOCK_FLIP_TIME := "1"
 
 build:
   @echo "Building..."
@@ -20,23 +25,26 @@ build:
 
 dpi-lib:
     @echo "Building DPI lib..."
-    cd {{ DPIDIR }} && cargo build
+    @mkdir -p {{ OUTDIR }}/emu
+    cd {{ DPIDIR }} && cargo build --features sv2023
+    @cp {{ DPIDIR }}/target/debug/libfangshanemu.a {{ OUTDIR }}/emu
 
 emit NAME BUILDCLASS BUILDFLAGS ANNOFILE: build
   @echo "Emitting..."
-  mkdir -p {{ OUTDIR }}
+  @mkdir -p {{ OUTDIR }}
   {{ ELABORATOR }} {{ BUILDCLASS }} {{ BUILDFLAGS }}
-  {{ FIRTOOL }} {{ NAME }}.fir --split-verilog --annotation-file={{ ANNOFILE }} -o {{ OUTDIR }}
-  {{ FIRTOOL }} {{ NAME }}.fir --ir-hw --annotation-file={{ ANNOFILE }} -o {{ OUTDIR }}/{{ NAME }}.mlir
+  {{ FIRTOOL }} {{ NAME }}.fir --split-verilog --annotation-file={{ ANNOFILE }} -o {{ OUTDIR }}/emit
+  {{ FIRTOOL }} {{ NAME }}.fir --ir-hw --annotation-file={{ ANNOFILE }} -o {{ OUTDIR }}/emit/{{ NAME }}.mlir
 
 verilog: (emit "FangShan" "fangshan.elaborator.FangShanMain" "design --parameter ./configs/FangShan.json --target-dir ." "FangShan.anno.json")
 
-emu: (emit "FangShanTestBench" "fangshan.elaborator.FangShanTestBenchMain" "design --parameter ./configs/FangShanTestBench.json --target-dir ." "FangShanTestBench.anno.json")
-  verilator --trace-fst --timing --threads 1 -Mdir {{ EMUDIR }} \
-    -O1 --main --exe --cc -I{{ OUTDIR }} -f {{ OUTDIR }}/filelist.f --top FangShanTestBench
+emu: dpi-lib (emit "FangShanTestBench" "fangshan.elaborator.FangShanTestBenchMain" "design --parameter ./configs/FangShanTestBench.json --target-dir ." "FangShanTestBench.anno.json")
+  @mkdir -p {{ OUTDIR }}/emu
+  verilator --trace-fst --timing --threads 1 -Mdir {{ OUTDIR }}/emu \
+    -O1 --main --exe --cc -I{{ OUTDIR }}/emit -f {{ OUTDIR }}/emit/filelist.f --top FangShanTestBench libfangshanemu.a
 
   echo "Building verilated C lib"
-  cd {{ EMUDIR }} && make -j`nproc` -f V{{ EMUNAME }}.mk V{{ EMUNAME }}
+  cd {{ OUTDIR }}/emu && make -j`nproc` -f V{{ EMUNAME }}.mk V{{ EMUNAME }}
 
 arcilator BUILDNAME:
   {{ ARC }} {{ BUILDNAME }}.mlir | {{ LLC }} -O3 -o FangShan.s
