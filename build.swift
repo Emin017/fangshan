@@ -4,8 +4,8 @@ import Foundation
 
 func createShell(_ command: String) throws -> String {
   let task = Process()
-
   let pipe = Pipe()
+  var output = ""
 
   task.standardOutput = pipe
   task.standardError = pipe
@@ -13,12 +13,20 @@ func createShell(_ command: String) throws -> String {
   task.executableURL = URL(fileURLWithPath: "/bin/zsh")
   task.standardInput = nil
 
+  pipe.fileHandleForReading.readabilityHandler = { handle in
+    let data = handle.availableData
+    if let str = String(data: data, encoding: .utf8) {
+        output = output + str
+        print(str, terminator: "")
+        fflush(stdout)
+    }
+  }
+
   try task.run()
 
   let data = pipe.fileHandleForReading.readDataToEndOfFile()
-  let output = String(data: data, encoding: .utf8)!
-
-  print("\(output)")
+  pipe.fileHandleForReading.readabilityHandler = nil
+  print(String(data: data, encoding: .utf8) ?? "")
 
   return output
 }
@@ -32,7 +40,7 @@ func readJson(_ path: String) -> [String: Any] {
 func buildDPI(buildDir: String, parameter: [String: Any]? = nil) {
   /// Build DPI library
   print("Building DPI")
-  let cargoFlags = ["build", "--release", "--features=sv2023"]
+  let cargoFlags = ["build", "--features=sv2023", "--features=trace"]
 
   let paramsMap = [
     "fangshanParameter.width": "DESIGN_DATA_WIDTH",
@@ -65,10 +73,12 @@ func buildDPI(buildDir: String, parameter: [String: Any]? = nil) {
 func runCompile() {
   /// Run mill compile and assembly
   print("Running mill compile and assembly")
-  _ = try? createShell("./mill -i __.compile")
+  _ = try? createShell("./mill -i __.assembly")
 }
 
 func runBuild(name: String, buildDir: String) {
+  /// Compile the design
+  runCompile()
   /// Elaborate the design
   let elaboratorFlags = [
     "-cp", "out/elaborator/assembly.dest/out.jar",
@@ -113,6 +123,7 @@ func runEmu(name: String, buildDir: String) {
     "--main", "--exe",
     "--cc",
     "-I\(buildDir)/emit",
+    "-DVERILATOR=1",
     "-f \(buildDir)/emit/filelist.f",
     "--top FangShanTestBench",
     "libfangshanemu.a",
@@ -135,7 +146,6 @@ do {
   case "1":
     name = "FangShan"
     dirPath = "./fangshan-sim-result"
-    runCompile()
     runBuild(name: name, buildDir: dirPath)
     runEmit(name: name, emitDir: dirPath)
   case "2":
