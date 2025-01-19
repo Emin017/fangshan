@@ -23,11 +23,43 @@ func createShell(_ command: String) throws -> String {
   return output
 }
 
-func buildDPI(buildDir: String) {
+func readJson(_ path: String) -> [String: Any] {
+  let url = URL(fileURLWithPath: path)
+  let data = try! Data(contentsOf: url)
+  return try! JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
+}
+
+func buildDPI(buildDir: String, parameter: [String: Any]? = nil) {
   /// Build DPI library
   print("Building DPI")
   let cargoFlags = ["build", "--release", "--features=sv2023"]
-  _ = try? createShell("cd fangshanemu && cargo \(cargoFlags.joined(separator: " "))")
+
+  let paramsMap = [
+    "fangshanParameter.width": "DESIGN_DATA_WIDTH",
+    "timeout": "DESIGN_TIMEOUT",
+    "testSize": "DESIGN_TEST_SIZE",
+    "testVerbatimParameter.clockFlipTick": "CLOCK_FLIP_TIME",
+  ]
+
+  /// Set the environment variables for the DPI build
+  let setEnv =
+    parameter?.flatMap { (key, value) -> [(String, Any)] in
+      switch value {
+      case let xs as [String: Any]:
+        return xs.map { (k, v) in (key + "." + k, v) }
+      default:
+        return [(key, value)]
+      }
+    }.filter {
+      key, _ in
+      paramsMap.keys.contains(key)
+    }
+    .map {
+      key, value in
+      "\(paramsMap[key]!)=\(value)"
+    }.joined(separator: " ") ?? ""
+
+  _ = try? createShell("cd fangshanemu && \(setEnv) cargo \(cargoFlags.joined(separator: " "))")
 }
 
 func runCompile() {
@@ -65,7 +97,7 @@ func runEmit(name: String, emitDir: String) {
 
 func runEmu(name: String, buildDir: String) {
   let emuDir = buildDir + "/emu"
-  buildDPI(buildDir: buildDir)  // Build DPI before running emu
+  buildDPI(buildDir: buildDir, parameter: readJson("configs/\(name).json"))  // Build DPI before running emu
   /// Copy the DPI library to the build directory
   let (_, _) = (
     try? createShell("mkdir -p \(emuDir)"),
