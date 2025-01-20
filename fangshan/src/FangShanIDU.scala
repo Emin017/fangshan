@@ -1,38 +1,28 @@
 package fangshan.idu
 
 import chisel3._
-import chisel3.experimental.hierarchy.{instantiable, public}
-import chisel3.properties.{AnyClassType, Property}
+import chisel3.experimental.hierarchy.instantiable
 import chisel3.util.{log2Ceil, Cat, DecoupledIO, Valid}
 import fangshan.FangShanParameter
-import fangshan.bundle.{ALUInputBundle, CtrlSigBundle}
+import fangshan.bundle.{IDUInputBundle, IDUOutputBundle}
 
 case class FangShanIDUParams(
   regNum: Int,
   width: Int) {
-  def regNumWidth = log2Ceil(regNum)
+  def regNumWidth: Int = log2Ceil(regNum)
 
-  def regWidth = width
+  def regWidth: Int = width
 
-  def inputBundle = {
-    new Bundle {
-      val inst = UInt(width.W)
-    }
-  }
+  def inputBundle: IDUInputBundle = new IDUInputBundle(width)
 
-  def outputBundle = {
-    new Bundle {
-      val aluBundle = new ALUInputBundle
-      val ctrlsigs  = new CtrlSigBundle
-    }
-  }
+  def outputBundle: IDUOutputBundle = new IDUOutputBundle
 }
 
 class FangShanIDUInterface(parameter: FangShanIDUParams) extends Bundle {
-  val clock  = Input(Clock())
-  val reset  = Input(Bool())
-  val input  = Flipped(Valid(parameter.inputBundle))
-  val output = DecoupledIO(parameter.outputBundle)
+  val clock:  Clock                        = Input(Clock())
+  val reset:  Reset                        = Input(Bool())
+  val input:  Valid[IDUInputBundle]        = Flipped(Valid(parameter.inputBundle))
+  val output: DecoupledIO[IDUOutputBundle] = DecoupledIO(parameter.outputBundle)
 }
 
 @instantiable
@@ -63,11 +53,11 @@ class FangShanIDU(val parameter: FangShanParameter)
 
   def rdGen(inst: UInt): UInt = inst(11, 7)
 
-  val inst = io.input.bits.inst
-  val src  = srcGen(inst)
+  val inst: UInt      = io.input.bits.inst
+  val src:  Seq[Data] = srcGen(inst)
   io.output.valid                := true.B
-  io.output.bits.aluBundle.rs1   := src(0)
-  io.output.bits.aluBundle.rs2   := src(1)
-  io.output.bits.ctrlsigs.rd     := rdGen(inst)
+  io.output.bits.aluBundle.rs1   := src.head
+  io.output.bits.aluBundle.rs2   := src.last
+  io.output.bits.ctrlSigs.rd     := rdGen(inst)
   io.output.bits.aluBundle.aluOp := aluOpGen(inst)
 }

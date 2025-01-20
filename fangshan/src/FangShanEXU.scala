@@ -1,41 +1,28 @@
 package fangshan.exu
 
-import chisel3.{ImplicitClock, _}
-import chisel3.experimental.hierarchy.{instantiable, public, Instance, Instantiate}
-import chisel3.probe.Probe
-import chisel3.properties.{AnyClassType, Property}
+import chisel3._
+import chisel3.experimental.hierarchy.instantiable
 import chisel3.util.{log2Ceil, DecoupledIO, Valid}
-import fangshan.bundle.{ALUInputBundle, CtrlSigBundle}
-import fangshan.{FangShanParameter, FangShanProbe}
+import fangshan.bundle.{EXUInputBundle, EXUOutputBundle}
+import fangshan.FangShanParameter
 
 case class FangShanEXUParams(
   regNum: Int,
   width: Int) {
-  def regNumWidth = log2Ceil(regNum)
+  def regNumWidth: Int = log2Ceil(regNum)
 
-  def regWidth = width
+  def regWidth: Int = width
 
-  def inputBundle = {
-    new Bundle {
-      val aluBundle = new ALUInputBundle
-      val ctrlsigs  = new CtrlSigBundle
-    }
-  }
+  def inputBundle: EXUInputBundle = new EXUInputBundle
 
-  def outputBundle = {
-    new Bundle {
-      val update = Bool()
-      val result = UInt(regWidth.W)
-      val rd     = UInt(regNum.W)
-    }
-  }
+  def outputBundle: EXUOutputBundle = new EXUOutputBundle(regWidth, regNum)
 }
 
 class FangShanEXUInterface(parameter: FangShanEXUParams) extends Bundle {
-  val clock  = Input(Clock())
-  val reset  = Input(Bool())
-  val input  = Flipped(DecoupledIO(parameter.inputBundle))
-  val output = Valid(parameter.outputBundle)
+  val clock:  Clock                       = Input(Clock())
+  val reset:  Bool                        = Input(Bool())
+  val input:  DecoupledIO[EXUInputBundle] = Flipped(DecoupledIO(parameter.inputBundle))
+  val output: Valid[EXUOutputBundle]      = Valid(parameter.outputBundle)
 }
 @instantiable
 class FangShanEXU(val parameter: FangShanParameter)
@@ -45,8 +32,8 @@ class FangShanEXU(val parameter: FangShanParameter)
   override protected def implicitClock: Clock = io.clock
   override protected def implicitReset: Reset = io.reset
 
-  val oldRes = RegInit(0.U(parameter.width.W))
-  val res    = WireInit(0.U(parameter.width.W))
+  val oldRes: UInt = RegInit(0.U(parameter.width.W))
+  val res:    UInt = WireInit(0.U(parameter.width.W))
   res := io.input.bits.aluBundle.rs1 + io.input.bits.aluBundle.rs2
 
   when(oldRes =/= res) {
@@ -60,5 +47,5 @@ class FangShanEXU(val parameter: FangShanParameter)
     io.output.valid       := false.B
   }
   io.output.bits.result := res
-  io.output.bits.rd     := io.input.bits.ctrlsigs.rd
+  io.output.bits.rd     := io.input.bits.ctrlSigs.rd
 }

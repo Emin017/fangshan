@@ -1,12 +1,11 @@
 package fangshan.ifu
 
-import chisel3.{ImplicitClock, ImplicitReset, _}
-import chisel3.experimental.hierarchy.{instantiable, public, Instance, Instantiate}
-import chisel3.probe.Probe
-import chisel3.properties.{AnyClassType, Property}
+import chisel3._
+import chisel3.experimental.hierarchy.instantiable
 import chisel3.util.circt.dpi.RawClockedNonVoidFunctionCall
 import chisel3.util.{log2Ceil, DecoupledIO, Valid}
-import fangshan.{FangShanParameter, FangShanProbe}
+import fangshan.bundle.{IFUInputBundle, IFUOutputBundle}
+import fangshan.FangShanParameter
 
 class FangShanMemoryInterface(parameter: FangShanParameter) extends Bundle {
   val clock:    Clock = Input(Clock())
@@ -15,48 +14,39 @@ class FangShanMemoryInterface(parameter: FangShanParameter) extends Bundle {
   val waddr:    UInt  = Input(UInt(parameter.width.W))
   val wmask:    UInt  = Input(UInt(parameter.wmask.W))
   val wdata:    UInt  = Input(UInt(parameter.width.W))
-  val MemWrite: Bool  = Input(Bool())
-  val MemRead:  Bool  = Input(Bool())
+  val memWrite: Bool  = Input(Bool())
+  val memRead:  Bool  = Input(Bool())
   val rdata:    UInt  = Output(UInt(parameter.width.W))
 }
 
 class FangShanMemory(parameter: FangShanParameter) extends RawModule {
-  val io = IO(new FangShanMemoryInterface(parameter))
+  val io: FangShanMemoryInterface = IO(new FangShanMemoryInterface(parameter))
 
   io.rdata := RawClockedNonVoidFunctionCall(
     "mem_read",
     UInt(parameter.width.W),
     Some(Seq("addr", "MemRead")),
     Some("rdata")
-  )(io.clock, true.B, io.raddr, io.MemRead)
+  )(io.clock, true.B, io.raddr, io.memRead)
 }
 
 case class FangShanIFUParams(
   regNum: Int,
   width: Int) {
-  def RegNumWidth = log2Ceil(regNum)
+  def RegNumWidth: Int = log2Ceil(regNum)
 
-  def RegWidth = width
+  def RegWidth: Int = width
 
-  def inputBundle = {
-    new Bundle {
-      val read    = Bool()
-      val address = UInt(width.W)
-    }
-  }
+  def inputBundle: IFUInputBundle = new IFUInputBundle(width)
 
-  def outputBundle = {
-    new Bundle {
-      val inst = UInt(width.W)
-    }
-  }
+  def outputBundle: IFUOutputBundle = new IFUOutputBundle(width)
 }
 
 class FangShanIFUInterface(parameter: FangShanIFUParams) extends Bundle {
-  val clock  = Input(Clock())
-  val reset  = Input(Bool())
-  val input  = Flipped(DecoupledIO(parameter.inputBundle))
-  val output = Valid(parameter.outputBundle)
+  val clock:  Clock                       = Input(Clock())
+  val reset:  Reset                       = Input(Bool())
+  val input:  DecoupledIO[IFUInputBundle] = Flipped(DecoupledIO(parameter.inputBundle))
+  val output: Valid[IFUOutputBundle]      = Valid(parameter.outputBundle)
   //  val probe  = Output(Probe(new FangShanProbe(parameter), layers.Verification))
   //  val om     = Output(Property[AnyClassType]())
 }
@@ -79,8 +69,8 @@ class FangShanIFU(val parameter: FangShanParameter)
   M.io.waddr    := 0.U
   M.io.wmask    := 0.U
   M.io.wdata    := 0.U
-  M.io.MemWrite := false.B
-  M.io.MemRead  := io.input.bits.read
+  M.io.memWrite := false.B
+  M.io.memRead  := io.input.bits.read
 
   io.output.bits.inst := M.io.rdata
   dontTouch(io.output.bits.inst)
