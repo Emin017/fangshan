@@ -1,4 +1,6 @@
 #!/usr/bin/env swift
+// SPDX-License-Identifier: MulanPSL-2.0
+// SPDX-FileCopyrightText: 2025 Emin <cchuqiming@gmail.com>
 
 import Foundation
 
