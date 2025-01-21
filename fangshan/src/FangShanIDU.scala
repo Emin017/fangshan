@@ -82,6 +82,7 @@ class FangShanIDU(val parameter: FangShanParameter)
 
   def rdGen(inst: UInt): UInt = inst(11, 7)
 
+  def isEbreak(inst: UInt): Bool = inst === 0x00100073.U
   val inst: UInt      = io.input.bits.inst
   val src:  Seq[Data] = srcGen(inst)
   io.output.valid                := true.B
@@ -89,4 +90,6 @@ class FangShanIDU(val parameter: FangShanParameter)
   io.output.bits.aluBundle.rs2   := src.last
   io.output.bits.ctrlSigs.rd     := rdGen(inst)
   io.output.bits.aluBundle.aluOp := aluOpGen(inst)
+
+  assert(!isEbreak(inst) || isAddi(inst), "Invalid instruction")
 }
