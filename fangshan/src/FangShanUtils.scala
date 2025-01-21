@@ -11,11 +11,12 @@ import scala.collection.immutable.SeqMap
   *
   * [[withClockAndReset]]: connect clock and reset to elements
   *
-  * [[dontCareInputs]]: set all inputs to DontCare except for ignorePorts
+  * [[dontCarePorts]]: set all inputs to DontCare except for ignorePorts
   */
 object FangShanUtils {
 
   /** Connect clock and reset to elements
+    *
     * @param element
     *   elements to be connected
     * @param clock
@@ -35,21 +36,17 @@ object FangShanUtils {
     }
   }
 
-  /** Set all inputs to DontCare except for ignorePorts
+  /** Set all ports to DontCare except for ignorePorts
+    *
     * @param element
-    *   elements to be set, such as: foo.io.elements
-    * @param ignorePorts
-    *   ports to be ignored, such as: Seq("clock", "reset")
+    *   elements to be set to DontCare
     * @return
     *   Iterable[Unit]
     */
-  def dontCareInputs(element: SeqMap[String, Data], ignorePorts: Seq[String]): Iterable[Unit] = {
-    ignorePorts.map { s =>
-      element.map { case (name, element) =>
-        name match {
-          case s => element := DontCare
-          case _ => ()
-        }
+  def dontCarePorts(element: SeqMap[String, Data]): Iterable[Unit] = {
+    element.map { case (name, element) =>
+      element match {
+        case _ => element := DontCare
       }
     }
   }
