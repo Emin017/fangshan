@@ -6,32 +6,29 @@ package fangshan.registers
 import chisel3._
 import chisel3.experimental.hierarchy.instantiable
 import chisel3.util.log2Ceil
+import fangshan.FangShanParameter
 
 case class FangShanRegistersParams(
-  regNum: Int,
+  num: Int,
   width: Int) {
-  def RegNumWidth: Int = log2Ceil(regNum)
+  def regNumbers: Int = log2Ceil(num)
 
-  def RegWidth: Int = width
+  def dataWidth: Int = width
 }
 
-class FangShanRegistersIO(
-  regNum:     Int,
-  regNumWith: Int,
-  width:      Int)
-    extends Bundle {
+class FangShanRegistersIO(params: FangShanRegistersParams) extends Bundle {
   val clock:       Clock = Input(Clock())
   val reset:       Bool  = Input(Bool())
-  val readAddr:    UInt  = Input(UInt(regNumWith.W))
-  val readData:    UInt  = Output(UInt(width.W))
-  val writeAddr:   UInt  = Input(UInt(regNum.W))
-  val writeData:   UInt  = Input(UInt(width.W))
+  val readAddr:    UInt  = Input(UInt(params.regNumbers.W))
+  val readData:    UInt  = Output(UInt(params.dataWidth.W))
+  val writeAddr:   UInt  = Input(UInt(params.regNumbers.W))
+  val writeData:   UInt  = Input(UInt(params.dataWidth.W))
   val writeEnable: Bool  = Input(Bool())
 }
 
 @instantiable
-class FangShanRegistersFile(params: FangShanRegistersParams)
-    extends FixedIORawModule(new FangShanRegistersIO(params.regNum, params.RegNumWidth, params.RegWidth))
+class FangShanRegistersFile(params: FangShanParameter)
+    extends FixedIORawModule(new FangShanRegistersIO(params.regParams))
     with ImplicitClock
     with ImplicitReset {
   override protected def implicitClock: Clock = io.clock
