@@ -11,6 +11,12 @@ import fangshan.FangShanParameter
 import fangshan.memory.FangShanMemory
 import fangshan.utils.{FangShanUtils => utils}
 
+/** IFUParams, which is used to define the parameters of the IFU
+  * @param regNum:
+  *   number of registers
+  * @param width:
+  *   width of registers
+  */
 case class FangShanIFUParams(
   regNum: Int,
   width: Int) {
@@ -23,6 +29,10 @@ case class FangShanIFUParams(
   def outputBundle: IFUOutputBundle = new IFUOutputBundle(width)
 }
 
+/** IFUInterface, Instruction Fetch Unit Interface
+  * @param parameter:
+  *   parameters of the IFU
+  */
 class FangShanIFUInterface(parameter: FangShanIFUParams) extends Bundle {
   val clock:  Clock                       = Input(Clock())
   val reset:  Reset                       = Input(Bool())
@@ -31,6 +41,11 @@ class FangShanIFUInterface(parameter: FangShanIFUParams) extends Bundle {
   //  val probe  = Output(Probe(new FangShanProbe(parameter), layers.Verification))
   //  val om     = Output(Property[AnyClassType]())
 }
+
+/** IFU, Instruction Fetch Unit
+  * @param parameter:
+  *   parameters of the IFU
+  */
 @instantiable
 class FangShanIFU(val parameter: FangShanParameter)
     extends FixedIORawModule(new FangShanIFUInterface(parameter.ifuParams))

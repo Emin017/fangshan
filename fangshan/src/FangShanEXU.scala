@@ -9,24 +9,56 @@ import chisel3.util.{log2Ceil, DecoupledIO, Valid}
 import fangshan.bundle.{EXUInputBundle, EXUOutputBundle}
 import fangshan.FangShanParameter
 
+/** EXUParams, which is used to define the parameters of the EXU
+  * @param regNum
+  *   number of registers
+  * @param width
+  *   width of registers
+  */
 case class FangShanEXUParams(
   regNum: Int,
   width: Int) {
+
+  /** regNumWidth, width of the number of registers
+    * @return
+    *   Int
+    */
   def regNumWidth: Int = log2Ceil(regNum)
 
+  /** regWidth, width of registers
+    * @return
+    *   Int
+    */
   def regWidth: Int = width
 
+  /** inputBundle, input bundle of the EXU
+    * @return
+    *   EXUInputBundle
+    */
   def inputBundle: EXUInputBundle = new EXUInputBundle
 
+  /** outputBundle, output bundle of the EXU
+    * @return
+    *   EXUOutputBundle
+    */
   def outputBundle: EXUOutputBundle = new EXUOutputBundle(regWidth, regNum)
 }
 
+/** EXUInterface, Execution Unit Interface
+  * @param parameter
+  *   parameters of the EXU
+  */
 class FangShanEXUInterface(parameter: FangShanEXUParams) extends Bundle {
   val clock:  Clock                       = Input(Clock())
   val reset:  Bool                        = Input(Bool())
   val input:  DecoupledIO[EXUInputBundle] = Flipped(DecoupledIO(parameter.inputBundle))
   val output: Valid[EXUOutputBundle]      = Valid(parameter.outputBundle)
 }
+
+/** EXU, Execution Unit
+  * @param parameter
+  *   parameters of the EXU
+  */
 @instantiable
 class FangShanEXU(val parameter: FangShanParameter)
     extends FixedIORawModule(new FangShanEXUInterface(parameter.exuParams))

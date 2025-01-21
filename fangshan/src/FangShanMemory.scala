@@ -10,6 +10,12 @@ import chisel3.util.circt.dpi.RawClockedNonVoidFunctionCall
 import fangshan.FangShanParameter
 import fangshan.bundle.{MemReadIO, MemWriteIO}
 
+/** Memory parameters, include data width and write mask
+  * @param xlen:
+  *   data width
+  * @param mask:
+  *   write mask
+  */
 case class FangShanMemoryParams(
   xlen: Int,
   mask: Int) {
@@ -17,6 +23,10 @@ case class FangShanMemoryParams(
   def wmask: Int = mask
 }
 
+/** Memory interface, include read and write interface
+  * @param parameter:
+  *   parameters of the memory
+  */
 class FangShanMemoryInterface(parameter: FangShanMemoryParams) extends Bundle {
   val clock: Clock = Input(Clock())
   val reset: Reset = Input(Reset())
@@ -31,6 +41,7 @@ class FangShanMemoryInterface(parameter: FangShanMemoryParams) extends Bundle {
   val write: Valid[MemWriteIO] = Flipped(Valid(new MemWriteIO(parameter.width, parameter.wmask)))
 }
 
+/** Memory module, include read and write logic, for now we use DPI to call the memory read function */
 class FangShanMemory(parameter: FangShanParameter) extends RawModule {
   val io: FangShanMemoryInterface = IO(new FangShanMemoryInterface(parameter.memParams))
 
