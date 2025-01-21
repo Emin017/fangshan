@@ -2,33 +2,10 @@ package fangshan.ifu
 
 import chisel3._
 import chisel3.experimental.hierarchy.instantiable
-import chisel3.util.circt.dpi.RawClockedNonVoidFunctionCall
 import chisel3.util.{log2Ceil, DecoupledIO, Valid}
 import fangshan.bundle.{IFUInputBundle, IFUOutputBundle}
 import fangshan.FangShanParameter
-
-class FangShanMemoryInterface(parameter: FangShanParameter) extends Bundle {
-  val clock:    Clock = Input(Clock())
-  val reset:    Reset = Input(Reset())
-  val raddr:    UInt  = Input(UInt(parameter.width.W))
-  val waddr:    UInt  = Input(UInt(parameter.width.W))
-  val wmask:    UInt  = Input(UInt(parameter.wmask.W))
-  val wdata:    UInt  = Input(UInt(parameter.width.W))
-  val memWrite: Bool  = Input(Bool())
-  val memRead:  Bool  = Input(Bool())
-  val rdata:    UInt  = Output(UInt(parameter.width.W))
-}
-
-class FangShanMemory(parameter: FangShanParameter) extends RawModule {
-  val io: FangShanMemoryInterface = IO(new FangShanMemoryInterface(parameter))
-
-  io.rdata := RawClockedNonVoidFunctionCall(
-    "mem_read",
-    UInt(parameter.width.W),
-    Some(Seq("addr", "MemRead")),
-    Some("rdata")
-  )(io.clock, true.B, io.raddr, io.memRead)
-}
+import fangshan.memory.FangShanMemory
 
 case class FangShanIFUParams(
   regNum: Int,
@@ -61,20 +38,23 @@ class FangShanIFU(val parameter: FangShanParameter)
   io.input.ready      := true.B
   io.output.valid     := true.B
   io.output.bits.inst := 0.U(parameter.width.W)
-  val M = Module(new FangShanMemory(parameter))
+  val M: FangShanMemory = Module(new FangShanMemory(parameter))
 
   parameter.connectClockAndReset(M.io.elements, implicitClock, implicitReset)
 
-  M.io.raddr    := io.input.bits.address
-  M.io.waddr    := 0.U
-  M.io.wmask    := 0.U
-  M.io.wdata    := 0.U
-  M.io.memWrite := false.B
-  M.io.memRead  := io.input.bits.read
+  parameter.dontCareInputs(
+    M.io.write.bits.elements,
+    M.io.write.bits.elements.map { case (name, element) =>
+      name
+    }.toSeq
+  )
+  M.io.write.valid := false.B
 
-  io.output.bits.inst := M.io.rdata
+  M.io.read.bits.address := io.input.bits.address
+  M.io.read.valid        := io.input.valid
+  io.output.bits.inst    := M.io.dataOut
+
   dontTouch(io.output.bits.inst)
   dontTouch(io.input.bits.read)
   dontTouch(io.input.bits.address)
-  dontTouch(M.io.rdata)
 }

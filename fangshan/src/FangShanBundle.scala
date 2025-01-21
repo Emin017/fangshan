@@ -2,6 +2,16 @@ package fangshan.bundle
 
 import chisel3._
 
+class MemReadIO(width: Int) extends Bundle {
+  val address: UInt = UInt(width.W)
+}
+
+class MemWriteIO(width: Int, maskWidth: Int) extends Bundle {
+  val address: UInt = UInt(width.W)
+  val data:    UInt = UInt(width.W)
+  val mask:    UInt = UInt(maskWidth.W)
+}
+
 class IFUInputBundle(width: Int) extends Bundle {
   val read:    Bool = Bool()
   val address: UInt = UInt(width.W)
