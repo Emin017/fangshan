@@ -1,8 +1,6 @@
 use tracing::{error, info, trace};
 
-use crate::{
-    FangShanArgs,
-};
+use crate::FangShanArgs;
 use svdpi::{get_time, SvScope};
 
 pub(crate) struct Driver {
@@ -23,6 +21,7 @@ pub(crate) struct Driver {
 
     test_num: u64,
     last_input_cycle: u64,
+    memory: Vec<u32>,
 }
 
 impl Driver {
@@ -47,6 +46,7 @@ impl Driver {
             clock_flip_time: env!("CLOCK_FLIP_TIME").parse().unwrap(),
             test_num: 0,
             last_input_cycle: 0,
+            memory: vec![0; 1024],
         }
     }
 
@@ -94,5 +94,14 @@ impl Driver {
     fn start_dump_wave(&mut self) {
         use crate::dpi::dump_wave;
         dump_wave(self.scope, &self.wave_path);
+    }
+
+    pub(crate) fn read_memory(&mut self, addr: u32) -> u32 {
+        let index = (addr / 4) as usize;
+        if index < self.memory.len() {
+            self.memory[index]
+        } else {
+            0
+        }
     }
 }
