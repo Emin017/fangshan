@@ -7,7 +7,6 @@
 
 let
   mill-rt-version = lib.head (lib.splitString "+" mill.jre.version);
-  cachePrefix = if stdenvNoCC.isDarwin then "Library/Caches/coursier" else ".cache/coursier";
   self = stdenvNoCC.mkDerivation ({
     name = "${name}-mill-deps";
     inherit src;
@@ -21,7 +20,10 @@ let
     buildPhase = ''
       runHook preBuild
 
-      export JAVA_OPTS="-Duser.home=$TMPDIR $JAVA_OPTS"
+      javaHome=$(mktemp -d)
+      export JAVA_OPTS="-Duser.home=$javaHome $JAVA_OPTS"
+      mkdir -p $javaHome/.mill/ammonite
+      touch "$javaHome/.mill/ammonite/rt-${mill-rt-version}.jar"
 
       # Use "https://repo1.maven.org/maven2/" only to keep dependencies integrity
       export COURSIER_REPOSITORIES="central"
@@ -33,8 +35,7 @@ let
 
     installPhase = ''
       runHook preInstall
-      mkdir -p $out/${cachePrefix}
-      mv $TMPDIR/${cachePrefix} $out/${cachePrefix}
+      cp -vr $javaHome $out
       runHook postInstall
     '';
 
@@ -55,8 +56,11 @@ let
           local tmpdir=$(mktemp -d)
           export JAVA_OPTS="$JAVA_OPTS -Duser.home=$tmpdir"
 
-          mkdir -p "$tmpdir"/.cache "$tmpdir/.mill/ammonite"
+          mkdir -p $tmpdir/.mill/ammonite
+
           touch "$tmpdir/.mill/ammonite/rt-${mill-rt-version}.jar"
+
+          find "${self}" -mindepth 1 -maxdepth 1 -type d -exec cp -r '{}' "$tmpdir/" ';'
 
           echo "JAVA HOME dir set to $tmpdir"
         }
