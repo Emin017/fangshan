@@ -6,6 +6,7 @@ package fangshan
 import chisel3._
 import chisel3.experimental.hierarchy.{instantiable, public, Instance, Instantiate}
 import chisel3.experimental.{SerializableModule, SerializableModuleParameter}
+import chisel3.probe.{define, Probe, ProbeValue}
 import chisel3.properties.{Class, Property}
 import chisel3.util.DecoupledIO
 import fangshan.idu.{FangShanIDU, FangShanIDUParams}
@@ -61,7 +62,7 @@ class FangShanInterface(parameter: FangShanParameter) extends Bundle {
   val input:  DecoupledIO[Bundle] = Flipped(DecoupledIO(new Bundle {}))
   @public
   val output: Bool                = Bool()
-//  val probe  = Output(Probe(new FangShanProbe(parameter), layers.Verification))
+  val probe = Output(Probe(new FangShanProbe(parameter), layers.Verification))
 //  val om     = Output(Property[AnyClassType]())
 }
 
@@ -90,8 +91,8 @@ class FangShan(val parameter: FangShanParameter)
 
   io.input.ready := true.B
 
-  ifu.io.input.bits.read    := pc(31, 2) =/= 0.U
-  ifu.io.input.bits.address := pc
+  ifu.io.input.bits.read    := true.B
+  ifu.io.input.bits.address := pc(30, 2)
   ifu.io.input.valid        := true.B
   idu.io.input <> ifu.io.output
   idu.io.input.bits.inst    := ifu.io.output.bits.inst
@@ -104,7 +105,7 @@ class FangShan(val parameter: FangShanParameter)
   reg.io.readAddr    := DontCare
 
   snpc := pc
-  dnpc := Mux(exu.io.output.bits.update, snpc, pc + 4.U)
+  dnpc := Mux(exu.io.output.bits.update, pc + 4.U, snpc)
   pc   := dnpc
 
   io.output := exu.io.output.bits.update
@@ -117,12 +118,14 @@ class FangShan(val parameter: FangShanParameter)
   dontTouch(exu.io.output)
 
   // Assign Probe
-//  val probeWire: FangShanProbe = Wire(new FangShanProbe(parameter))
-//  define(io.probe, ProbeValue(probeWire))
-//  probeWire.busy := exu.io.output.bits.update
+  val probeWire: FangShanProbe = Wire(new FangShanProbe(parameter))
+  define(io.probe, ProbeValue(probeWire))
+  probeWire.busy := exu.io.output.bits.update
+  dontTouch(probeWire)
+  dontTouch(io.probe)
 
   // Assign Metadata
-//  val omInstance: Instance[FangShanOM] = Instantiate(new FangShanOM(parameter))
-//  io.om := omInstance.getPropertyReference.asAnyClassType
+  //  val omInstance: Instance[FangShanOM] = Instantiate(new FangShanOM(parameter))
+  //  io.om := omInstance.getPropertyReference.asAnyClassType
 
 }

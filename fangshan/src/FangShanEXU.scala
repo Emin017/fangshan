@@ -77,7 +77,7 @@ class FangShanEXU(val parameter: FangShanParameter)
     io.input.ready        := true.B
     io.output.valid       := true.B
   }.otherwise {
-    io.output.bits.update := false.B
+    io.output.bits.update := true.B
     io.input.ready        := false.B
     io.output.valid       := false.B
   }
