@@ -18,9 +18,9 @@ func createShell(_ command: String) throws -> String {
   pipe.fileHandleForReading.readabilityHandler = { handle in
     let data = handle.availableData
     if let str = String(data: data, encoding: .utf8) {
-        output = output + str
-        print(str, terminator: "")
-        fflush(stdout)
+      output = output + str
+      print(str, terminator: "")
+      fflush(stdout)
     }
   }
 
@@ -105,7 +105,9 @@ func runEmit(name: String, emitDir: String) {
     "\(emitDir)/emit",
   ]
   _ = try? createShell("firtool \(firtoolFlags.joined(separator: " "))")
-  _ = try? createShell("cd \(emitDir)/emit && find verification -maxdepth 1 -name 'layers-*' -type f -print >> ./filelist.f")
+  _ = try? createShell(
+    "cd \(emitDir)/emit && find verification -maxdepth 1 -name 'layers-*' -type f -print >> ./filelist.f"
+  )
 }
 
 func runEmu(name: String, buildDir: String) {

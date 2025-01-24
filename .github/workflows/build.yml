@@ -15,6 +15,6 @@ jobs:
       - name: Flake check
         run: nix flake check
       - name: Format check
-        run: nix develop --command sh -c 'mill fangshan.checkFormat'
+        run: nix develop --command sh -c 'mill fangshan.checkFormat && mill elaborator.checkFormat'
       - name: Build and test
         run: nix run '.#fangshan.verilated'
