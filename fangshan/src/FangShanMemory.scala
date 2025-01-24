@@ -11,9 +11,9 @@ import fangshan.FangShanParameter
 import fangshan.bundle.{MemReadIO, MemWriteIO}
 
 /** Memory parameters, include data width and write mask
-  * @param xlen:
+  * @param xlen
   *   data width
-  * @param mask:
+  * @param mask
   *   write mask
   */
 case class FangShanMemoryParams(
@@ -24,7 +24,7 @@ case class FangShanMemoryParams(
 }
 
 /** Memory interface, include read and write interface
-  * @param parameter:
+  * @param parameter
   *   parameters of the memory
   */
 class FangShanMemoryInterface(parameter: FangShanMemoryParams) extends Bundle {
@@ -49,6 +49,6 @@ class FangShanMemory(parameter: FangShanParameter) extends RawModule {
     "mem_read",
     UInt(parameter.width.W),
     Some(Seq("addr", "rvalid")),
-    Some("rdata")
+    Some("data")
   )(io.clock, true.B, io.read.bits.address, io.read.valid)
 }

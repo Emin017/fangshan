@@ -30,7 +30,7 @@ case class FangShanIFUParams(
 }
 
 /** IFUInterface, Instruction Fetch Unit Interface
-  * @param parameter:
+  * @param parameter
   *   parameters of the IFU
   */
 class FangShanIFUInterface(parameter: FangShanIFUParams) extends Bundle {
@@ -43,7 +43,7 @@ class FangShanIFUInterface(parameter: FangShanIFUParams) extends Bundle {
 }
 
 /** IFU, Instruction Fetch Unit
-  * @param parameter:
+  * @param parameter
   *   parameters of the IFU
   */
 @instantiable
