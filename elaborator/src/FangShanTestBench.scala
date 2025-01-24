@@ -19,7 +19,7 @@ object FangShanTestBenchMain extends SerializableModuleElaborator {
   @main
   case class FangShanTestBenchParameterMain(
     @arg(name = "testVerbatimParameter") testVerbatimParameter: TestVerbatimParameterMain,
-    @arg(name = "fangshanParameter") fangshanParameter:                   FangShanParameterMain,
+    @arg(name = "fangshanParameter") fangshanParameter:         FangShanParameterMain,
     @arg(name = "timeout") timeout:                             Int,
     @arg(name = "testSize") testSize: Int) {
     def convert: FangShanTestBenchParameter = FangShanTestBenchParameter(
