@@ -39,7 +39,7 @@
             rustfmt.enable = true; # rust
             yamlfmt.enable = true; # yaml
             taplo.enable = true; # toml
-            scalafmt.enable = true; # scala
+            swift-format.enable = true; # swift
           };
         };
       in
