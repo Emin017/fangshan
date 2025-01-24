@@ -3,6 +3,13 @@ use tracing::{error, info, trace};
 use crate::FangShanArgs;
 use svdpi::{get_time, SvScope};
 
+const BUILTIN_IMG: &[u32] = &[
+    0x00100093, // addi x1, x0, 1
+    0x00200113, // addi x2, x0, 2
+    0x002081b3, // add x3, x1, x2
+    0x00100073, // ebreak
+];
+
 pub(crate) struct Driver {
     scope: SvScope,
     pub(crate) data_width: u64,
@@ -30,6 +37,14 @@ impl Driver {
     }
 
     pub(crate) fn new(scope: SvScope, args: &FangShanArgs) -> Self {
+        let mut memory = vec![0; 1024];
+        let _ = match &args.bin_path {
+            Some(path) => Self::load_memory(path),
+            None => {
+                memory[..BUILTIN_IMG.len()].copy_from_slice(BUILTIN_IMG);
+                memory
+            }
+        };
         Self {
             scope,
             #[cfg(feature = "trace")]
@@ -103,5 +118,23 @@ impl Driver {
         } else {
             0
         }
+    }
+
+    fn load_memory(path: &str) -> Vec<u32> {
+        use std::fs::File;
+        use std::io::Read;
+
+        let mut file = File::open(path).expect("Fail to open file");
+        let mut buffer = Vec::new();
+        file.read_to_end(&mut buffer).expect("Read file failed");
+
+        let mut memory = Vec::new();
+        for chunk in buffer.chunks(4) {
+            if chunk.len() == 4 {
+                let value = u32::from_le_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]);
+                memory.push(value);
+            }
+        }
+        memory
     }
 }
