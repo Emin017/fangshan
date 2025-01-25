@@ -6,7 +6,7 @@ pub mod dpi;
 pub mod drive;
 pub mod plusarg;
 
-pub(crate) struct GcdArgs {
+pub(crate) struct FangShanArgs {
     #[cfg(feature = "trace")]
     dump_start: u64,
 
@@ -19,7 +19,7 @@ pub(crate) struct GcdArgs {
     pub log_level: String,
 }
 
-impl GcdArgs {
+impl FangShanArgs {
     pub fn setup_logger(&self) -> Result<(), Box<dyn std::error::Error>> {
         let log_level: Level = self.log_level.parse()?;
         let global_logger = FmtSubscriber::builder()

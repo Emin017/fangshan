@@ -1,11 +1,7 @@
-use num_bigint::{BigUint, RandBigInt};
-use num_traits::Zero;
-use rand::Rng;
 use tracing::{error, info, trace};
 
 use crate::{
-    dpi::{TestPayload, TestPayloadBits},
-    GcdArgs,
+    FangShanArgs,
 };
 use svdpi::{get_time, SvScope};
 
@@ -34,7 +30,7 @@ impl Driver {
         get_time() / self.clock_flip_time
     }
 
-    pub(crate) fn new(scope: SvScope, args: &GcdArgs) -> Self {
+    pub(crate) fn new(scope: SvScope, args: &FangShanArgs) -> Self {
         Self {
             scope,
             #[cfg(feature = "trace")]
@@ -62,46 +58,13 @@ impl Driver {
         }
     }
 
-    pub(crate) fn get_input(&mut self) -> TestPayload {
-        fn fangshan(x: BigUint, y: BigUint) -> BigUint {
-            if y.is_zero() {
-                x.clone()
-            } else {
-                fangshan(y.clone(), x % y)
-            }
-        }
-
-        let mut rng = rand::thread_rng();
-        let x = rng.gen_biguint(self.data_width);
-        let y = rng.gen_biguint(self.data_width);
-        let result = fangshan(x.clone(), y.clone());
-
-        self.last_input_cycle = self.get_tick();
-        self.test_num += 1;
-        trace!(
-            "[{}] the {}th input is x={} y={} result={}",
-            self.get_tick(),
-            self.test_num,
-            &x,
-            &y,
-            &result
-        );
-        TestPayload {
-            valid: if rand::thread_rng().gen::<f64>() < 0.95 {
-                1
-            } else {
-                0
-            },
-            bits: TestPayloadBits { x, y, result },
-        }
-    }
-
     pub(crate) fn watchdog(&mut self) -> u8 {
         const WATCHDOG_CONTINUE: u8 = 0;
         const WATCHDOG_TIMEOUT: u8 = 1;
         const WATCHDOG_FINISH: u8 = 2;
 
         let tick = self.get_tick();
+        println!("tick: {}", tick);
         if self.test_num >= self.test_size {
             info!("[{tick}] test finished, exiting");
             WATCHDOG_FINISH
