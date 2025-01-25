@@ -37,14 +37,6 @@ impl Driver {
     }
 
     pub(crate) fn new(scope: SvScope, args: &FangShanArgs) -> Self {
-        let mut memory = vec![0; 1024];
-        let _ = match &args.bin_path {
-            Some(path) => Self::load_memory(path),
-            None => {
-                memory[..BUILTIN_IMG.len()].copy_from_slice(BUILTIN_IMG);
-                memory
-            }
-        };
         Self {
             scope,
             #[cfg(feature = "trace")]
@@ -61,7 +53,18 @@ impl Driver {
             clock_flip_time: env!("CLOCK_FLIP_TIME").parse().unwrap(),
             test_num: 0,
             last_input_cycle: 0,
-            memory: vec![0; 1024],
+            memory: match &args.bin_path {
+                // Load binary file if provided
+                Some(path) => {
+                    info!("Loading binary file: {}", path);
+                    Self::load_memory(path)
+                }
+                None => {
+                    // Use builtin image if no binary file is provided
+                    info!("No binary file provided, using builtin image");
+                    BUILTIN_IMG.to_vec()
+                }
+            },
         }
     }
 
