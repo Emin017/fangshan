@@ -8,6 +8,12 @@ import chisel3.experimental.hierarchy.instantiable
 import chisel3.util.log2Ceil
 import fangshan.FangShanParameter
 
+/** FangShanRegistersParams, which is used to define the parameters of the registers
+  * @param num
+  *   number of registers
+  * @param width
+  *   width of registers
+  */
 case class FangShanRegistersParams(
   num: Int,
   width: Int) {
@@ -16,6 +22,10 @@ case class FangShanRegistersParams(
   def dataWidth: Int = width
 }
 
+/** FangShanRegistersIO, which is used to define the IO of the registers
+  * @param params
+  *   parameters of the registers
+  */
 class FangShanRegistersIO(params: FangShanRegistersParams) extends Bundle {
   val clock:       Clock = Input(Clock())
   val reset:       Bool  = Input(Bool())
@@ -26,6 +36,10 @@ class FangShanRegistersIO(params: FangShanRegistersParams) extends Bundle {
   val writeEnable: Bool  = Input(Bool())
 }
 
+/** FangShanRegistersFile, which is used to define the registers
+  * @param params
+  *   parameters of the registers
+  */
 @instantiable
 class FangShanRegistersFile(params: FangShanParameter)
     extends FixedIORawModule(new FangShanRegistersIO(params.regParams))

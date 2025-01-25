@@ -9,18 +9,40 @@ import chisel3.util.{log2Ceil, Cat, DecoupledIO, Valid}
 import fangshan.FangShanParameter
 import fangshan.bundle.{IDUInputBundle, IDUOutputBundle}
 
+/** IDUParams, which is used to define the parameters of the IDU
+  * @param regNum
+  *   number of registers
+  * @param width
+  *   width of registers
+  */
 case class FangShanIDUParams(
   regNum: Int,
   width: Int) {
   def regNumWidth: Int = log2Ceil(regNum)
 
+  /** regWidth, width of registers
+    * @return
+    *   Int
+    */
   def regWidth: Int = width
 
+  /** inputBundle, input bundle of the IDU
+    * @return
+    *   IDUInputBundle
+    */
   def inputBundle: IDUInputBundle = new IDUInputBundle(width)
 
+  /** outputBundle, output bundle of the IDU
+    * @return
+    *   IDUOutputBundle
+    */
   def outputBundle: IDUOutputBundle = new IDUOutputBundle
 }
 
+/** IDUInterface, Instruction Decode Unit Interface
+  * @param parameter
+  *   parameters of the IDU
+  */
 class FangShanIDUInterface(parameter: FangShanIDUParams) extends Bundle {
   val clock:  Clock                        = Input(Clock())
   val reset:  Reset                        = Input(Bool())
@@ -28,6 +50,10 @@ class FangShanIDUInterface(parameter: FangShanIDUParams) extends Bundle {
   val output: DecoupledIO[IDUOutputBundle] = DecoupledIO(parameter.outputBundle)
 }
 
+/** IDU, Instruction Decode Unit
+  * @param parameter
+  *   parameters of the IDU
+  */
 @instantiable
 class FangShanIDU(val parameter: FangShanParameter)
     extends FixedIORawModule(new FangShanIDUInterface(parameter.iduParams))

@@ -15,8 +15,6 @@ import fangshan.memory.FangShanMemoryParams
 import fangshan.registers.{FangShanRegistersFile, FangShanRegistersParams}
 import fangshan.utils.{FangShanUtils => utils}
 
-import scala.collection.immutable.SeqMap
-
 object FangShanParameter {
   implicit def rwP: upickle.default.ReadWriter[FangShanParameter] =
     upickle.default.macroRW
