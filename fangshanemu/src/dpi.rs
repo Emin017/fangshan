@@ -4,7 +4,7 @@ use std::sync::Mutex;
 use crate::drive::Driver;
 use crate::plusarg::PlusArgMatcher;
 use crate::FangShanArgs;
-use svdpi::sys::dpi::{svBitVecVal, svBit};
+use svdpi::sys::dpi::{svBit, svBitVecVal};
 use svdpi::SvScope;
 
 pub type SvBitVecVal = u32;
@@ -28,7 +28,10 @@ unsafe extern "C" fn fangshan_init() {
     let driver = Box::new(Driver::new(scope, &args));
 
     let mut dpi_target = DPI_TARGET.lock().unwrap();
-    assert!(dpi_target.is_none(), "fangshan_init should be called only once");
+    assert!(
+        dpi_target.is_none(),
+        "fangshan_init should be called only once"
+    );
     *dpi_target = Some(driver);
 
     if let Some(driver) = dpi_target.as_mut() {
@@ -38,26 +41,27 @@ unsafe extern "C" fn fangshan_init() {
 
 #[no_mangle]
 unsafe extern "C" fn fangshan_watchdog(reason: *mut c_char) {
-    let mut driver = DPI_TARGET.lock().unwrap();
-    if let Some(driver) = driver.as_mut() {
-        *reason = driver.watchdog() as c_char;
+    let mut _driver = DPI_TARGET.lock().unwrap();
+    if let Some(_driver) = _driver.as_mut() {
+        *reason = _driver.watchdog() as c_char;
     }
 }
 
 #[no_mangle]
 unsafe extern "C" fn fangshan_input(payload: *mut svBitVecVal) {
-    let mut driver = DPI_TARGET.lock().unwrap();
-    if let Some(driver) = driver.as_mut() {
+    let mut _driver = DPI_TARGET.lock().unwrap();
+    if let Some(_driver) = _driver.as_mut() {
         // TODO: implement fangshan_input
     }
 }
 
 #[no_mangle]
-unsafe extern "C" fn mem_read(addr: u32, MemRead: svBit, data: *mut svBitVecVal) {
+unsafe extern "C" fn mem_read(addr: u32, rvalid: svBit, data: *mut svBitVecVal) {
     let mut driver = DPI_TARGET.lock().unwrap();
     if let Some(driver) = driver.as_mut() {
-        // TODO: return data from memory
-        *data = 0;
+        if rvalid != 0 {
+            *data = driver.read_memory(addr);
+        }
     }
 }
 
