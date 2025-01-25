@@ -1,5 +1,4 @@
-// SPDX-License-Identifier: Unlicense
-// SPDX-FileCopyrightText: 2024 Jiuyang Liu <liu@jiuyang.me>
+// SPDX-License-Identifier: MulanPSL-2.0
 // SPDX-FileCopyrightText: 2025 Emin <cchuqiming@gmail.com>
 
 package fangshan
