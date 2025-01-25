@@ -1,9 +1,9 @@
 package fangshan.idu
 
 import chisel3._
-import chisel3.experimental.hierarchy.instantiable
+import chisel3.experimental.hierarchy.{instantiable, public}
 import chisel3.properties.{AnyClassType, Property}
-import chisel3.util.{log2Ceil, DecoupledIO, Valid}
+import chisel3.util.{log2Ceil, Cat, DecoupledIO, Valid}
 import fangshan.FangShanParameter
 import fangshan.bundle.{ALUInputBundle, CtrlSigBundle}
 
@@ -33,8 +33,6 @@ class FangShanIDUInterface(parameter: FangShanIDUParams) extends Bundle {
   val reset  = Input(Bool())
   val input  = Flipped(Valid(parameter.inputBundle))
   val output = DecoupledIO(parameter.outputBundle)
-  //  val probe  = Output(Probe(new FangShanProbe(parameter), layers.Verification))
-  //  val om     = Output(Property[AnyClassType]())
 }
 
 @instantiable
@@ -45,14 +43,31 @@ class FangShanIDU(val parameter: FangShanParameter)
   override protected def implicitClock: Clock = io.clock
   override protected def implicitReset: Reset = io.reset
 
-  def isAddi(data: UInt): Bool = {
-    data(6, 0) === 0x13.U
+  def opcode(inst: UInt): UInt = inst(6, 0)
+
+  def funct3(inst: UInt): UInt = inst(14, 12)
+
+  def immI(inst: UInt): UInt = Cat(inst(31, 25))
+
+  def isAddi(inst: UInt): Bool = {
+    funct3(inst) === 0.U && opcode(inst) === 0x13.U
   }
+
+  def aluOpGen(inst: UInt): UInt = {
+    Mux(isAddi(inst), 1.U, 0.U)
+  }
+
+  def srcGen(inst: UInt): Seq[Data] = {
+    Seq(inst(19, 15), Mux(isAddi(inst), immI(inst), inst(24, 20)))
+  }
+
+  def rdGen(inst: UInt): UInt = inst(11, 7)
+
   val inst = io.input.bits.inst
+  val src  = srcGen(inst)
   io.output.valid                := true.B
-  io.output.bits.aluBundle.aluOp := Mux(isAddi(inst), 1.U, 0.U)
-  io.output.bits.aluBundle.rs1   := inst(3, 1)
-  io.output.bits.aluBundle.rs2   := inst(2, 1)
-  io.output.bits.ctrlsigs.id     := 1.U
-  io.output.bits.ctrlsigs.isAddi := isAddi(io.input.bits.inst)
+  io.output.bits.aluBundle.rs1   := src(0)
+  io.output.bits.aluBundle.rs2   := src(1)
+  io.output.bits.ctrlsigs.rd     := rdGen(inst)
+  io.output.bits.aluBundle.aluOp := aluOpGen(inst)
 }

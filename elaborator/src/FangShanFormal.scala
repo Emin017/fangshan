@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Unlicense
 // SPDX-FileCopyrightText: 2024 Jiuyang Liu <liu@jiuyang.me>
-package org.chipsalliance.fangshan.elaborator
+package fangshan.elaborator
 
 import mainargs._
 /*

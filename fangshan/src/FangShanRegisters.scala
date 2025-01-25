@@ -41,4 +41,6 @@ class FangShanRegistersFile(params: FangShanRegistersParams)
   }
 
   io.readData := registers(io.readAddr)
+
+  dontTouch(registers)
 }
