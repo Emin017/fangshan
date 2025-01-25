@@ -6,7 +6,7 @@ package fangshan
 import chisel3._
 import chisel3.experimental.hierarchy.{instantiable, public, Instance, Instantiate}
 import chisel3.experimental.{SerializableModule, SerializableModuleParameter}
-import chisel3.properties.{AnyClassType, Class, Property}
+import chisel3.properties.{AnyClassType, Class, ClassType, Property}
 import chisel3.util.circt.dpi.RawUnclockedNonVoidFunctionCall
 import chisel3.util.{Counter, HasExtModuleInline}
 
@@ -31,9 +31,10 @@ case class FangShanTestBenchParameter(
 
 @instantiable
 class FangShanTestBenchOM(parameter: FangShanTestBenchParameter) extends Class {
-  val fangshan   = IO(Output(Property[AnyClassType]()))
+  val fangshan:   Property[ClassType] = IO(Output(Property[AnyClassType]()))
   @public
-  val fangshanIn = IO(Input(Property[AnyClassType]()))
+  val fangshanIn: Property[ClassType] = IO(Input(Property[AnyClassType]()))
+
   fangshan := fangshanIn
 }
 
@@ -68,7 +69,7 @@ class FangShanTestBench(val parameter: FangShanTestBenchParameter)
   simulationTime := simulationTime + 1.U
 
   val (_, callWatchdog) = Counter(true.B, parameter.timeout / 2)
-  val watchdogCode      = RawUnclockedNonVoidFunctionCall("fangshan_watchdog", UInt(8.W))(callWatchdog)
+  val watchdogCode: UInt = RawUnclockedNonVoidFunctionCall("fangshan_watchdog", UInt(8.W))(callWatchdog)
   when(watchdogCode =/= 0.U) {
     stop(cf"""{"event":"SimulationStop","reason": ${watchdogCode},"cycle":${simulationTime}}\n""")
   }
@@ -92,14 +93,14 @@ case class TestVerbatimParameter(
 
 @instantiable
 class TestVerbatimOM(parameter: TestVerbatimParameter) extends Class {
-  val useAsyncReset:    Property[Boolean] = IO(Output(Property[Boolean]()))
-  val initFunctionName: Property[String]  = IO(Output(Property[String]()))
-  val dumpFunctionName: Property[String]  = IO(Output(Property[String]()))
-  val clockFlipTick:    Property[Int]     = IO(Output(Property[Int]()))
-  val resetFlipTick:    Property[Int]     = IO(Output(Property[Int]()))
-  val fangshan   = IO(Output(Property[AnyClassType]()))
+  val useAsyncReset:    Property[Boolean]   = IO(Output(Property[Boolean]()))
+  val initFunctionName: Property[String]    = IO(Output(Property[String]()))
+  val dumpFunctionName: Property[String]    = IO(Output(Property[String]()))
+  val clockFlipTick:    Property[Int]       = IO(Output(Property[Int]()))
+  val resetFlipTick:    Property[Int]       = IO(Output(Property[Int]()))
+  val fangshan:         Property[ClassType] = IO(Output(Property[AnyClassType]()))
   @public
-  val fangshanIn = IO(Input(Property[AnyClassType]()))
+  val fangshanIn:       Property[ClassType] = IO(Input(Property[AnyClassType]()))
   fangshan         := fangshanIn
   useAsyncReset    := Property(parameter.useAsyncReset)
   initFunctionName := Property(parameter.initFunctionName)

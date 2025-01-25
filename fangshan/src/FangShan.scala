@@ -4,13 +4,13 @@
 
 package fangshan
 
-import chisel3.{experimental, _}
-import chisel3.experimental.hierarchy.{core, instantiable, public, Instance, Instantiate}
-import chisel3.experimental.{BaseModule, SerializableModule, SerializableModuleParameter}
-import chisel3.probe.{define, Probe, ProbeValue}
-import chisel3.properties.{AnyClassType, Class, Property}
-import chisel3.util.{DecoupledIO, Valid}
-import fangshan.idu.{FangShanIDU, FangShanIDUInterface, FangShanIDUParams}
+import chisel3._
+import chisel3.experimental.hierarchy.{instantiable, public, Instance, Instantiate}
+import chisel3.experimental.{SerializableModule, SerializableModuleParameter}
+import chisel3.properties.{Class, Property}
+import chisel3.util.DecoupledIO
+
+import fangshan.idu.{FangShanIDU, FangShanIDUParams}
 import fangshan.ifu.{FangShanIFU, FangShanIFUParams}
 import fangshan.exu.{FangShanEXU, FangShanEXUParams}
 import fangshan.registers.{FangShanRegistersFile, FangShanRegistersParams}
@@ -32,20 +32,20 @@ case class FangShanParameter(
 
   def wmask: Int = 8
 
-  def registerParams = FangShanRegistersParams(regNum, width)
+  def registerParams: FangShanRegistersParams = FangShanRegistersParams(regNum, width)
 
-  def ifuParams = FangShanIFUParams(regNum, width)
+  def ifuParams: FangShanIFUParams = FangShanIFUParams(regNum, width)
 
-  def iduParams = FangShanIDUParams(regNum, width)
+  def iduParams: FangShanIDUParams = FangShanIDUParams(regNum, width)
 
-  def exuParams = FangShanEXUParams(regNum, width)
+  def exuParams: FangShanEXUParams = FangShanEXUParams(regNum, width)
 
-  def connectClockAndReset(element: SeqMap[String, Data], clock: Clock, reset: Reset) = {
+  def connectClockAndReset(element: SeqMap[String, Data], clock: Clock, reset: Reset): Iterable[Unit] = {
     element.map { case (name, element) =>
-      if (name == "clock") {
-        element := clock
-      } else if (name == "reset") {
-        element := reset
+      name match {
+        case "clock" => element.asInstanceOf[Clock] := clock
+        case "reset" => element.asInstanceOf[Reset] := reset
+        case _       => ()
       }
     }
   }
@@ -53,7 +53,7 @@ case class FangShanParameter(
 
 /** Verification IO of [[FangShan]] */
 class FangShanProbe(parameter: FangShanParameter) extends Bundle {
-  val busy = Bool()
+  val busy: Bool = Bool()
 }
 
 /** Metadata of [[FangShan]]. */
@@ -65,12 +65,12 @@ class FangShanOM(parameter: FangShanParameter) extends Class {
 
 /** Interface of [[FangShan]]. */
 class FangShanInterface(parameter: FangShanParameter) extends Bundle {
-  val clock  = Input(Clock())
-  val reset  = Input(Bool())
+  val clock:  Clock               = Input(Clock())
+  val reset:  Reset               = Input(Bool())
   @public
-  val input  = Flipped(DecoupledIO(new Bundle {}))
+  val input:  DecoupledIO[Bundle] = Flipped(DecoupledIO(new Bundle {}))
   @public
-  val output = Bool()
+  val output: Bool                = Bool()
 //  val probe  = Output(Probe(new FangShanProbe(parameter), layers.Verification))
 //  val om     = Output(Property[AnyClassType]())
 }
