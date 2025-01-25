@@ -1,4 +1,4 @@
-use tracing::{error, info, trace};
+use tracing::{debug, error, info, trace};
 
 use crate::FangShanArgs;
 use svdpi::{get_time, SvScope};
@@ -114,10 +114,10 @@ impl Driver {
         dump_wave(self.scope, &self.wave_path);
     }
 
-    pub(crate) fn read_memory(&mut self, addr: u32) -> u32 {
-        let index = (addr / 4) as usize;
-        if index < self.memory.len() {
-            self.memory[index]
+    pub(crate) fn read_memory(&mut self, addr: usize) -> u32 {
+        debug!("memory: Reading memory data at 0x{:08x}", addr);
+        if addr < self.memory.len() {
+            self.memory[addr]
         } else {
             0
         }
