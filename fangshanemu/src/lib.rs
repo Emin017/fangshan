@@ -17,6 +17,8 @@ pub(crate) struct FangShanArgs {
     pub wave_path: String,
 
     pub log_level: String,
+
+    pub bin_path: Option<String>,
 }
 
 impl FangShanArgs {
@@ -44,6 +46,7 @@ impl FangShanArgs {
             #[cfg(feature = "trace")]
             wave_path: matcher.match_("wave-path").into(),
             log_level: matcher.try_match("log-level").unwrap_or("info").into(),
+            bin_path: matcher.try_match("bin-file").as_deref().map(Into::into),
         }
     }
 }
