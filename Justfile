@@ -1,24 +1,29 @@
 MILL := "./mill"
-ELABORATOR := "./out/elaborator/assembly.dest/out.jar"
-BUILDFLAGS := "design --parameter ./configs/FangShan.json --target-dir ."
-ANNOFILE := "FangShan.anno.json"
+JAVA := "java"
+ELABORATOR := "java -cp ./out/elaborator/assembly.dest/out.jar"
+
 FIRTOOL := "firtool"
 ARC := "arcilator"
 LLC := "llc"
 OUTDIR := "emitOut"
 
 build:
-    @echo "Building..."
-    {{ MILL }} -i __.assembly
-    {{ ELABORATOR }} {{ BUILDFLAGS }}
+  @echo "Building..."
+  {{ MILL }} -i __.assembly
 
-emit: build
+emit NAME BUILDCLASS BUILDFLAGS ANNOFILE: build
+  @echo "Emitting..."
   mkdir -p {{ OUTDIR }}
-  {{ FIRTOOL }} FangShan.fir --split-verilog --annotation-file={{ ANNOFILE }} -o {{ OUTDIR }}
-  {{ FIRTOOL }} FangShan.fir --ir-hw --annotation-file={{ ANNOFILE }} -o {{ OUTDIR }}/FangShan.mlir
+  {{ ELABORATOR }} {{ BUILDCLASS }} {{ BUILDFLAGS }}
+  {{ FIRTOOL }} {{ NAME }}.fir --split-verilog --annotation-file={{ ANNOFILE }} -o {{ OUTDIR }}
+  {{ FIRTOOL }} {{ NAME }}.fir --ir-hw --annotation-file={{ ANNOFILE }} -o {{ OUTDIR }}/{{ NAME }}.mlir
 
-arcilator: emit
-  {{ ARC }} FangShan.mlir | {{ LLC }} -O3 -o FangShan.s
+verilog: (emit "FangShan" "fangshan.elaborator.FangShanMain" "design --parameter ./configs/FangShan.json --target-dir ." "FangShan.anno.json")
+
+emu: (emit "FangShanTestBench" "fangshan.elaborator.FangShanTestBenchMain" "design --parameter ./configs/FangShanTestBench.json --target-dir ." "FangShanTestBench.anno.json")
+
+arcilator BUILDNAME:
+  {{ ARC }} {{ BUILDNAME }}.mlir | {{ LLC }} -O3 -o FangShan.s
 
 reformat:
     @echo "Reformatting..."
@@ -26,9 +31,4 @@ reformat:
 
 clean:
     @echo "Cleaning..."
-    rm -rf out
-    rm -rf {{ OUTDIR }}
-    rm -f FangShan.mlir
-    rm -f FangShan.s
-    rm -f FangShan.fir
-    rm -f FangShan.v
+    rm -rf out {{ OUTDIR }} *.fir *.mlir *.anno.json *.s
