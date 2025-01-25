@@ -8,7 +8,7 @@ svdpi = { version = "0.0.3" }
 rand = "0.8"
 num-traits = "0.2.19"
 num-bigint = { version = "0.4.6", features = ["rand"] }
-tracing = "0.1.40"
+tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter", "ansi"] }
 
 [features]
