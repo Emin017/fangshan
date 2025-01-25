@@ -9,10 +9,10 @@ import chisel3.experimental.hierarchy.{instantiable, public, Instance, Instantia
 import chisel3.experimental.{SerializableModule, SerializableModuleParameter}
 import chisel3.properties.{Class, Property}
 import chisel3.util.DecoupledIO
-
 import fangshan.idu.{FangShanIDU, FangShanIDUParams}
 import fangshan.ifu.{FangShanIFU, FangShanIFUParams}
 import fangshan.exu.{FangShanEXU, FangShanEXUParams}
+import fangshan.memory.FangShanMemoryParams
 import fangshan.registers.{FangShanRegistersFile, FangShanRegistersParams}
 
 import scala.collection.immutable.SeqMap
@@ -32,6 +32,8 @@ case class FangShanParameter(
 
   def wmask: Int = 8
 
+  def memParams: FangShanMemoryParams = FangShanMemoryParams(width, wmask)
+
   def registerParams: FangShanRegistersParams = FangShanRegistersParams(regNum, width)
 
   def ifuParams: FangShanIFUParams = FangShanIFUParams(regNum, width)
@@ -40,12 +42,25 @@ case class FangShanParameter(
 
   def exuParams: FangShanEXUParams = FangShanEXUParams(regNum, width)
 
+  /** Connect clock and reset to elements */
   def connectClockAndReset(element: SeqMap[String, Data], clock: Clock, reset: Reset): Iterable[Unit] = {
     element.map { case (name, element) =>
       name match {
         case "clock" => element.asInstanceOf[Clock] := clock
         case "reset" => element.asInstanceOf[Reset] := reset
         case _       => ()
+      }
+    }
+  }
+
+  /** Set all inputs to DontCare except for ignorePorts */
+  def dontCareInputs(element: SeqMap[String, Data], ignorePorts: Seq[String]): Iterable[Unit] = {
+    ignorePorts.map { s =>
+      element.map { case (name, element) =>
+        name match {
+          case s => element := DontCare
+          case _ => ()
+        }
       }
     }
   }
