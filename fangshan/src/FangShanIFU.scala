@@ -61,12 +61,7 @@ class FangShanIFU(val parameter: FangShanParameter)
 
   utils.withClockAndReset(M.io.elements, implicitClock, implicitReset)
 
-  utils.dontCareInputs(
-    M.io.write.bits.elements,
-    M.io.write.bits.elements.map { case (name, element) =>
-      name
-    }.toSeq
-  )
+  utils.dontCarePorts(M.io.write.elements)
   M.io.write.valid := false.B
 
   M.io.read.bits.address := io.input.bits.address
