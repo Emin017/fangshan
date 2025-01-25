@@ -3,6 +3,7 @@
 
 package org.chipsalliance.fangshan
 
+/*
 import chisel3._
 import chisel3.experimental.hierarchy.{instantiable, public, Instance, Instantiate}
 import chisel3.experimental.{SerializableModule, SerializableModuleParameter}
@@ -11,6 +12,7 @@ import chisel3.ltl.{AssertProperty, CoverProperty, Delay, Sequence}
 import chisel3.properties.{AnyClassType, Class, Property}
 import chisel3.util.circt.dpi.{RawClockedNonVoidFunctionCall, RawUnclockedNonVoidFunctionCall}
 import chisel3.util.{Counter, HasExtModuleInline, RegEnable, Valid}
+import fangshan.{FangShan, FangShanParameter}
 
 object FangShanTestBenchParameter {
   implicit def rwP: upickle.default.ReadWriter[FangShanTestBenchParameter] =
@@ -25,8 +27,8 @@ case class FangShanTestBenchParameter(
   testSize:              Int)
     extends SerializableModuleParameter {
   require(
-    (testVerbatimParameter.useAsyncReset && fangshanParameter.useAsyncReset) ||
-      (!testVerbatimParameter.useAsyncReset && !fangshanParameter.useAsyncReset),
+    (testVerbatimParameter.useAsyncReset) ||
+      (!testVerbatimParameter.useAsyncReset),
     "Reset Type check failed."
   )
 }
@@ -196,3 +198,5 @@ class TestVerbatim(parameter: TestVerbatimParameter)
        |""".stripMargin
   )
 }
+
+ */

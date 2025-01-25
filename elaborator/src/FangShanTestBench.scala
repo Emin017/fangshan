@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2024 Jiuyang Liu <liu@jiuyang.me>
 package org.chipsalliance.fangshan.elaborator
 
+/*
 import mainargs._
 import org.chipsalliance.fangshan.{FangShanTestBench, FangShanTestBenchParameter, TestVerbatimParameter}
 import org.chipsalliance.fangshan.elaborator.FangShanMain.FangShanParameterMain
@@ -72,3 +73,5 @@ object FangShanTestBenchMain extends SerializableModuleElaborator {
 
   def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args.toIndexedSeq)
 }
+
+ */

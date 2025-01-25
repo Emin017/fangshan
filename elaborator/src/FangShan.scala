@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Unlicense
 // SPDX-FileCopyrightText: 2024 Jiuyang Liu <liu@jiuyang.me>
-package org.chipsalliance.fangshan.elaborator
+package fangshan.elaborator
 
 import mainargs._
-import org.chipsalliance.fangshan.{FangShan, FangShanParameter}
+import fangshan.{FangShan, FangShanParameter}
 import chisel3.experimental.util.SerializableModuleElaborator
 
 object FangShanMain extends SerializableModuleElaborator {
@@ -17,10 +17,10 @@ object FangShanMain extends SerializableModuleElaborator {
   @main
   case class FangShanParameterMain(
     @arg(name = "width") width: Int,
-    @arg(name = "useAsyncReset") useAsyncReset: Boolean) {
+    @arg(name = "regNum") regNum: Int) {
     require(width > 0, "width must be a non-negative integer")
     require(chisel3.util.isPow2(width), "width must be a power of 2")
-    def convert: FangShanParameter = FangShanParameter(width, useAsyncReset)
+    def convert: FangShanParameter = FangShanParameter(width, regNum)
   }
 
   implicit def FangShanParameterMainParser: ParserForClass[FangShanParameterMain] =

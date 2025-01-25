@@ -39,9 +39,8 @@ trait HasChisel extends ScalaModule {
 
 trait ElaboratorModule extends ScalaModule with HasChisel {
   def generators:            Seq[ScalaModule]
-  def panamaconverterModule: ScalaModule
   def circtInstallPath:      T[PathRef]
-  override def moduleDeps = super.moduleDeps ++ Seq(panamaconverterModule) ++ generators
+  override def moduleDeps = super.moduleDeps ++ generators
   def mainargsIvy: Dep
   override def ivyDeps = T(super.ivyDeps() ++ Seq(mainargsIvy))
   override def javacOptions = T(super.javacOptions() ++ Seq("--enable-preview", "--release", "21"))

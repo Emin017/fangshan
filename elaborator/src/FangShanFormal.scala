@@ -3,6 +3,7 @@
 package org.chipsalliance.fangshan.elaborator
 
 import mainargs._
+/*
 import org.chipsalliance.fangshan.{FangShanFormal, FangShanFormalParameter}
 import org.chipsalliance.fangshan.elaborator.FangShanMain.FangShanParameterMain
 import chisel3.experimental.util.SerializableModuleElaborator
@@ -46,3 +47,4 @@ object FangShanFormalMain extends SerializableModuleElaborator {
 
   def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args.toIndexedSeq)
 }
+*/

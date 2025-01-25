@@ -40,8 +40,6 @@ object elaborator extends Elaborator
 trait Elaborator extends millbuild.common.ElaboratorModule with ScalafmtModule {
   def scalaVersion = T(deps.scalaVer)
 
-  def panamaconverterModule = panamaconverter
-
   def circtInstallPath =
     T.input(PathRef(os.Path(T.ctx().env("CIRCT_INSTALL_PATH"))))
 
@@ -53,14 +51,4 @@ trait Elaborator extends millbuild.common.ElaboratorModule with ScalafmtModule {
   def chiselPluginJar = T(Some(chisel.pluginModule.jar()))
   def chiselPluginIvy = None
   def chiselIvy = None
-}
-
-object panamaconverter extends PanamaConverter
-trait PanamaConverter extends millbuild.dependencies.chisel.build.PanamaConverter {
-  def crossValue = deps.scalaVer
-
-  override def millSourcePath =
-    os.pwd / "dependencies" / "chisel" / "panamaconverter"
-
-  def scalaVersion = T(deps.scalaVer)
 }
