@@ -6,6 +6,7 @@ import chisel3.util.{log2Ceil, DecoupledIO, Valid}
 import fangshan.bundle.{IFUInputBundle, IFUOutputBundle}
 import fangshan.FangShanParameter
 import fangshan.memory.FangShanMemory
+import fangshan.utils.{FangShanUtils => utils}
 
 case class FangShanIFUParams(
   regNum: Int,
@@ -40,9 +41,9 @@ class FangShanIFU(val parameter: FangShanParameter)
   io.output.bits.inst := 0.U(parameter.width.W)
   val M: FangShanMemory = Module(new FangShanMemory(parameter))
 
-  parameter.connectClockAndReset(M.io.elements, implicitClock, implicitReset)
+  utils.withClockAndReset(M.io.elements, implicitClock, implicitReset)
 
-  parameter.dontCareInputs(
+  utils.dontCareInputs(
     M.io.write.bits.elements,
     M.io.write.bits.elements.map { case (name, element) =>
       name

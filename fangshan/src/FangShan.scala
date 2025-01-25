@@ -14,6 +14,7 @@ import fangshan.ifu.{FangShanIFU, FangShanIFUParams}
 import fangshan.exu.{FangShanEXU, FangShanEXUParams}
 import fangshan.memory.FangShanMemoryParams
 import fangshan.registers.{FangShanRegistersFile, FangShanRegistersParams}
+import fangshan.utils.{FangShanUtils => utils}
 
 import scala.collection.immutable.SeqMap
 
@@ -41,29 +42,6 @@ case class FangShanParameter(
   def iduParams: FangShanIDUParams = FangShanIDUParams(regNum, width)
 
   def exuParams: FangShanEXUParams = FangShanEXUParams(regNum, width)
-
-  /** Connect clock and reset to elements */
-  def connectClockAndReset(element: SeqMap[String, Data], clock: Clock, reset: Reset): Iterable[Unit] = {
-    element.map { case (name, element) =>
-      name match {
-        case "clock" => element.asInstanceOf[Clock] := clock
-        case "reset" => element.asInstanceOf[Reset] := reset
-        case _       => ()
-      }
-    }
-  }
-
-  /** Set all inputs to DontCare except for ignorePorts */
-  def dontCareInputs(element: SeqMap[String, Data], ignorePorts: Seq[String]): Iterable[Unit] = {
-    ignorePorts.map { s =>
-      element.map { case (name, element) =>
-        name match {
-          case s => element := DontCare
-          case _ => ()
-        }
-      }
-    }
-  }
 }
 
 /** Verification IO of [[FangShan]] */
@@ -108,10 +86,10 @@ class FangShan(val parameter: FangShanParameter)
   val snpc: UInt                            = WireInit("h80000000".U(parameter.width.W))
   val dnpc: UInt                            = WireInit("h80000000".U(parameter.width.W))
 
-  parameter.connectClockAndReset(ifu.io.elements, implicitClock, implicitReset)
-  parameter.connectClockAndReset(idu.io.elements, implicitClock, implicitReset)
-  parameter.connectClockAndReset(exu.io.elements, implicitClock, implicitReset)
-  parameter.connectClockAndReset(reg.io.elements, implicitClock, implicitReset)
+  utils.withClockAndReset(ifu.io.elements, implicitClock, implicitReset)
+  utils.withClockAndReset(idu.io.elements, implicitClock, implicitReset)
+  utils.withClockAndReset(exu.io.elements, implicitClock, implicitReset)
+  utils.withClockAndReset(reg.io.elements, implicitClock, implicitReset)
 
   io.input.ready := true.B
 
