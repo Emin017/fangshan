@@ -34,7 +34,7 @@ case class FangShanParameter(
 
   def memParams: FangShanMemoryParams = FangShanMemoryParams(width, wmask)
 
-  def registerParams: FangShanRegistersParams = FangShanRegistersParams(regNum, width)
+  def regParams: FangShanRegistersParams = FangShanRegistersParams(regNum, width)
 
   def ifuParams: FangShanIFUParams = FangShanIFUParams(regNum, width)
 
@@ -80,7 +80,7 @@ class FangShan(val parameter: FangShanParameter)
   val ifu:  Instance[FangShanIFU]           = Instantiate(new FangShanIFU(parameter))
   val idu:  Instance[FangShanIDU]           = Instantiate(new FangShanIDU(parameter))
   val exu:  Instance[FangShanEXU]           = Instantiate(new FangShanEXU(parameter))
-  val reg:  Instance[FangShanRegistersFile] = Instantiate(new FangShanRegistersFile(parameter.registerParams))
+  val reg:  Instance[FangShanRegistersFile] = Instantiate(new FangShanRegistersFile(parameter))
   val pc:   UInt                            = RegInit("h80000000".U(parameter.width.W))
   val snpc: UInt                            = WireInit("h80000000".U(parameter.width.W))
   val dnpc: UInt                            = WireInit("h80000000".U(parameter.width.W))
