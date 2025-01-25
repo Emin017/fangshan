@@ -103,6 +103,7 @@ func runEmit(name: String, emitDir: String) {
     "\(emitDir)/emit",
   ]
   _ = try? createShell("firtool \(firtoolFlags.joined(separator: " "))")
+  _ = try? createShell("cd \(emitDir)/emit && find verification -maxdepth 1 -name 'layers-*' -type f -print >> ./filelist.f")
 }
 
 func runEmu(name: String, buildDir: String) {

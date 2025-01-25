@@ -64,7 +64,6 @@ impl Driver {
         const WATCHDOG_FINISH: u8 = 2;
 
         let tick = self.get_tick();
-        println!("tick: {}", tick);
         if self.test_num >= self.test_size {
             info!("[{tick}] test finished, exiting");
             WATCHDOG_FINISH

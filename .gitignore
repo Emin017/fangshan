@@ -19,6 +19,7 @@ emitOut/
 *.fst
 *.fsdb
 *.log
+*.hier
 
 # Chisel
 *.fir
