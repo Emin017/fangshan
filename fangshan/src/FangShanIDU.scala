@@ -5,7 +5,7 @@ package fangshan.idu
 
 import chisel3._
 import chisel3.experimental.hierarchy.instantiable
-import chisel3.util.{log2Ceil, Cat, DecoupledIO, Valid}
+import chisel3.util.{log2Ceil, Cat, DecoupledIO, Fill, Valid}
 import fangshan.FangShanParameter
 import fangshan.bundle.{IDUInputBundle, IDUOutputBundle}
 
@@ -66,7 +66,7 @@ class FangShanIDU(val parameter: FangShanParameter)
 
   def funct3(inst: UInt): UInt = inst(14, 12)
 
-  def immI(inst: UInt): UInt = Cat(inst(31, 25))
+  def immI(inst: UInt): UInt = signEXT(inst(31, 20))
 
   def isAddi(inst: UInt): Bool = {
     funct3(inst) === 0.U && opcode(inst) === 0x13.U
@@ -83,6 +83,9 @@ class FangShanIDU(val parameter: FangShanParameter)
   def rdGen(inst: UInt): UInt = inst(11, 7)
 
   def isEbreak(inst: UInt): Bool = inst === 0x00100073.U
+
+  def signEXT(imm: UInt) = Cat(Fill(20, imm(11)), imm)
+
   val inst: UInt      = io.input.bits.inst
   val src:  Seq[Data] = srcGen(inst)
   io.output.valid                := true.B
