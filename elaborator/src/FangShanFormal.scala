@@ -4,8 +4,8 @@ package fangshan.elaborator
 
 import mainargs._
 /*
-import org.chipsalliance.fangshan.{FangShanFormal, FangShanFormalParameter}
-import org.chipsalliance.fangshan.elaborator.FangShanMain.FangShanParameterMain
+import fangshan.{FangShanFormal, FangShanFormalParameter}
+import fangshan.elaborator.FangShanMain.FangShanParameterMain
 import chisel3.experimental.util.SerializableModuleElaborator
 
 object FangShanFormalMain extends SerializableModuleElaborator {

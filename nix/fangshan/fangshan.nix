@@ -23,7 +23,7 @@ let
   self = stdenv.mkDerivation rec {
     name = "fangshan";
 
-    mainClass = "org.chipsalliance.fangshan.elaborator.${target}Main";
+    mainClass = "fangshan.elaborator.${target}Main";
 
     src = with lib.fileset;
       toSource {
@@ -44,7 +44,7 @@ let
             root = ./../..;
             fileset = unions [ ./../../build.sc ./../../common.sc ];
           };
-        millDepsHash = "sha256-5VTgJ1JaIxP3wk/WsFj+W1VGFE2xoPKu3XbmTVOvMdk=";
+        millDepsHash = "sha256-nvq1zEHewcgsHcyOaDKUMSGpXOLGflkPAxIYRTHLMEA=";
         nativeBuildInputs = [ projectDependencies.setupHook ];
       };
 
