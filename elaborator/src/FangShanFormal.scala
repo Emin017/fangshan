@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MulanPSL-2.0
-// SPDX-FileCopyrightText: 2025 Emin <cchuqiming@gmail.com>
+// SPDX-FileCopyrightText: 2025 Emin (Qiming Chu) <cchuqiming@gmail.com>
 
 package fangshan.elaborator
 
