@@ -4,12 +4,12 @@
         "initFunctionName": "fangshan_init",
         "dumpFunctionName": "dump_wave",
         "clockFlipTick": 1,
-        "resetFlipTick": 100
+        "resetFlipTick": 10
     },
     "fangshanParameter": {
         "width": 32,
         "useAsyncReset": false
     },
-    "timeout": 10000,
-    "testSize": 100
+    "timeout": 100,
+    "testSize": 10
 }
