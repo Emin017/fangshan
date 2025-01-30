@@ -4,9 +4,8 @@
 package fangshan.memory
 
 import chisel3._
-import chisel3.reflect.DataMirror
 import chisel3.util.Valid
-import chisel3.util.circt.dpi.RawClockedNonVoidFunctionCall
+import chisel3.util.circt.dpi.RawUnclockedNonVoidFunctionCall
 import fangshan.FangShanParameter
 import fangshan.bundle.{MemReadIO, MemWriteIO}
 
@@ -45,10 +44,10 @@ class FangShanMemoryInterface(parameter: FangShanMemoryParams) extends Bundle {
 class FangShanMemory(parameter: FangShanParameter) extends RawModule {
   val io: FangShanMemoryInterface = IO(new FangShanMemoryInterface(parameter.memParams))
 
-  io.dataOut := RawClockedNonVoidFunctionCall(
+  io.dataOut := RawUnclockedNonVoidFunctionCall(
     "mem_read",
     UInt(parameter.width.W),
     Some(Seq("addr", "rvalid")),
     Some("data")
-  )(io.clock, true.B, io.read.bits.address, io.read.valid)
+  )(true.B, io.read.bits.address, io.read.valid)
 }
