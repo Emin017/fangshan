@@ -70,7 +70,11 @@ class FangShanTestBench(val parameter: FangShanTestBenchParameter)
 
   val (_, callWatchdog) = Counter(true.B, parameter.timeout / 2)
   val watchdogCode: UInt = RawUnclockedNonVoidFunctionCall("fangshan_watchdog", UInt(8.W))(callWatchdog)
-  when(watchdogCode =/= 0.U) {
+
+  // Stop simulation when watchdogCode is not 0 or the DUT is not busy after reset cycle.
+  val stopCondition: Bool = (watchdogCode =/= 0.U) ||
+    (!dut.io.reset.asBool && !dut.io.output && (simulationTime > 0.U))
+  when(stopCondition) {
     stop(cf"""{"event":"SimulationStop","reason": ${watchdogCode},"cycle":${simulationTime}}\n""")
   }
 

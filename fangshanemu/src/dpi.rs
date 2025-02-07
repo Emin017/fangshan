@@ -59,8 +59,10 @@ unsafe extern "C" fn fangshan_input(payload: *mut svBitVecVal) {
 unsafe extern "C" fn mem_read(addr: u32, rvalid: svBit, data: *mut svBitVecVal) {
     let mut driver = DPI_TARGET.lock().unwrap();
     if let Some(driver) = driver.as_mut() {
-        if rvalid != 0 && addr != 0 {
+        if rvalid == 1 {
             *data = driver.read_memory(addr as usize);
+        } else {
+            *data = 0;
         }
     }
 }

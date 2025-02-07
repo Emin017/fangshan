@@ -93,7 +93,7 @@ class FangShan(val parameter: FangShanParameter)
 
   ifu.io.input.bits.read    := true.B
   ifu.io.input.bits.address := pc(30, 2)
-  ifu.io.input.valid        := true.B
+  ifu.io.input.valid        := !io.reset.asBool
   idu.io.input <> ifu.io.output
   idu.io.input.bits.inst    := ifu.io.output.bits.inst
   dontTouch(ifu.io.output.bits.inst)

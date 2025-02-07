@@ -88,11 +88,12 @@ class FangShanIDU(val parameter: FangShanParameter)
 
   val inst: UInt      = io.input.bits.inst
   val src:  Seq[Data] = srcGen(inst)
-  io.output.valid                := true.B
+  io.output.valid                := io.input.valid
   io.output.bits.aluBundle.rs1   := src.head
   io.output.bits.aluBundle.rs2   := src.last
   io.output.bits.ctrlSigs.rd     := rdGen(inst)
   io.output.bits.aluBundle.aluOp := aluOpGen(inst)
+  io.output.bits.ctrlSigs.ebreak := isEbreak(inst)
 
   assert(!isEbreak(inst) || isAddi(inst), "Invalid instruction")
 }

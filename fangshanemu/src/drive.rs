@@ -115,10 +115,12 @@ impl Driver {
     }
 
     pub(crate) fn read_memory(&mut self, addr: usize) -> u32 {
-        debug!("memory: Reading memory data at 0x{:08x}", addr);
+        debug!("memory: Reading memory at 0x{:08x}", addr);
         if addr < self.memory.len() {
+            debug!("memory: Read value 0x{:08x}", self.memory[addr]);
             self.memory[addr]
         } else {
+            debug!("memory: Read value 0x{:08x}", 0);
             0
         }
     }

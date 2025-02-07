@@ -55,8 +55,8 @@ class FangShanIFU(val parameter: FangShanParameter)
   override protected def implicitReset: Reset = io.reset
 
   io.input.ready      := true.B
-  io.output.valid     := true.B
   io.output.bits.inst := 0.U(parameter.width.W)
+
   val M: FangShanMemory = Module(new FangShanMemory(parameter))
 
   utils.withClockAndReset(M.io.elements, implicitClock, implicitReset)
@@ -65,8 +65,14 @@ class FangShanIFU(val parameter: FangShanParameter)
   M.io.write.valid := false.B
 
   M.io.read.bits.address := io.input.bits.address
-  M.io.read.valid        := io.input.valid
-  io.output.bits.inst    := M.io.dataOut
+  // We want cpu start fetching signal after the reset signal is released,
+  // so we use RegNext to delay the signal.
+  M.io.read.valid        := RegNext(io.input.valid)
+  // Same as the read.valid above
+  val noReset = RegNext(io.reset)
+  // FIXME: This is a workaround for fetching the first instruction, it should be removed when we add nop instruction.
+  io.output.valid     := (M.io.dataOut =/= 0.U) && io.input.valid && !noReset.asBool
+  io.output.bits.inst := M.io.dataOut
 
   dontTouch(io.output.bits.inst)
   dontTouch(io.input.bits.read)

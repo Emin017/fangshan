@@ -71,16 +71,19 @@ class FangShanEXU(val parameter: FangShanParameter)
   val res:    UInt = WireInit(0.U(parameter.width.W))
   res := io.input.bits.aluBundle.rs1 + io.input.bits.aluBundle.rs2
 
-  when(oldRes =/= res) {
-    oldRes                := res
-    io.output.bits.update := true.B
-    io.input.ready        := true.B
-    io.output.valid       := true.B
+  val diffRes: Bool = oldRes =/= res
+  val ebreak:  Bool = io.input.bits.ctrlSigs.ebreak
+  when(diffRes) {
+    oldRes          := res
+    io.input.ready  := true.B
+    io.output.valid := true.B
   }.otherwise {
-    io.output.bits.update := true.B
-    io.input.ready        := false.B
-    io.output.valid       := false.B
+    io.input.ready  := false.B
+    io.output.valid := false.B
   }
+  io.output.bits.update := Mux(io.input.valid && (diffRes || !ebreak), true.B, false.B)
+  dontTouch(ebreak)
+  dontTouch(res)
   io.output.bits.result := res
   io.output.bits.rd     := io.input.bits.ctrlSigs.rd
 }

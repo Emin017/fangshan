@@ -33,7 +33,8 @@ class IFUOutputBundle(width: Int) extends Bundle {
 /** CtrlSigBundle, which is used to define the control signals, include [[rd]]
   */
 class CtrlSigBundle extends Bundle {
-  val rd: UInt = UInt(4.W)
+  val rd:     UInt = UInt(4.W)
+  val ebreak: Bool = Bool()
 }
 
 /** ALUInputBundle, which is used to define the input bundle of the ALU, include [[rs1]], [[rs2]], [[aluOp]]
