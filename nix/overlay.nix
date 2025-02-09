@@ -38,9 +38,6 @@ rec {
 
   circt-full = final.callPackage ./pkgs/circt-full.nix { };
 
-  # faster strip-undetereminism
-  add-determinism = final.callPackage ./pkgs/add-determinism { };
-
   projectDependencies = final.callPackage ./pkgs/project-dependencies.nix { };
 
   fangshan = final.callPackage ./fangshan { };
