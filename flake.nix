@@ -54,6 +54,7 @@
             inputsFrom = [
               pkgs.fangshan.fangshan-compiled
               pkgs.fangshan.tb-dpi-lib
+              pkgs.dummy
             ];
             nativeBuildInputs = [
               pkgs.cargo
