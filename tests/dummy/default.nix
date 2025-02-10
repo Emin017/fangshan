@@ -9,6 +9,7 @@ let
 
     CC = "${stdenv.targetPlatform.config}-gcc";
     CXX = "${stdenv.targetPlatform.config}-g++";
+    OBJCOPY = "${stdenv.targetPlatform.config}-objcopy";
 
     NIX_CFLAGS_COMPILE = [
       "-O2"
@@ -24,6 +25,7 @@ let
       runHook preBuild
 
       $CC $pname.c -o $pname.elf
+      $OBJCOPY -j .text -O binary $pname.elf $pname.bin
 
       runHook postBuild
     '';
