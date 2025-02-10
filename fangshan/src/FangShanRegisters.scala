@@ -5,6 +5,7 @@ package fangshan.registers
 
 import chisel3._
 import chisel3.experimental.hierarchy.instantiable
+import chisel3.probe.{define, Probe, ProbeValue}
 import chisel3.util.log2Ceil
 import fangshan.FangShanParameter
 
@@ -22,18 +23,27 @@ case class FangShanRegistersParams(
   def dataWidth: Int = width
 }
 
+/** FangShanRegProbe, which is used to define the probe of the registers
+  * @param parameter
+  *   parameters of the registers
+  */
+class FangShanRegProbe(params: FangShanRegistersParams) extends Bundle {
+  val haltValue: UInt = UInt(params.dataWidth.W)
+}
+
 /** FangShanRegistersIO, which is used to define the IO of the registers
   * @param params
   *   parameters of the registers
   */
 class FangShanRegistersIO(params: FangShanRegistersParams) extends Bundle {
-  val clock:       Clock = Input(Clock())
-  val reset:       Bool  = Input(Bool())
-  val readAddr:    UInt  = Input(UInt(params.regNumbers.W))
-  val readData:    UInt  = Output(UInt(params.dataWidth.W))
-  val writeAddr:   UInt  = Input(UInt(params.regNumbers.W))
-  val writeData:   UInt  = Input(UInt(params.dataWidth.W))
-  val writeEnable: Bool  = Input(Bool())
+  val clock:       Clock            = Input(Clock())
+  val reset:       Bool             = Input(Bool())
+  val readAddr:    UInt             = Input(UInt(params.regNumbers.W))
+  val readData:    UInt             = Output(UInt(params.dataWidth.W))
+  val writeAddr:   UInt             = Input(UInt(params.regNumbers.W))
+  val writeData:   UInt             = Input(UInt(params.dataWidth.W))
+  val writeEnable: Bool             = Input(Bool())
+  val probe:       FangShanRegProbe = Output(Probe(new FangShanRegProbe(params), layers.Verification))
 }
 
 /** FangShanRegistersFile, which is used to define the registers
@@ -56,5 +66,10 @@ class FangShanRegistersFile(params: FangShanParameter)
 
   io.readData := registers(io.readAddr)
 
+  val probeWire: FangShanRegProbe = Wire(new FangShanRegProbe(params.regParams))
+  define(io.probe, ProbeValue(probeWire))
+  probeWire.haltValue := registers(10)
+
+  dontTouch(probeWire)
   dontTouch(registers)
 }

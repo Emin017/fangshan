@@ -13,7 +13,7 @@ import fangshan.idu.{FangShanIDU, FangShanIDUParams}
 import fangshan.ifu.{FangShanIFU, FangShanIFUParams}
 import fangshan.exu.{FangShanEXU, FangShanEXUParams}
 import fangshan.memory.FangShanMemoryParams
-import fangshan.registers.{FangShanRegistersFile, FangShanRegistersParams}
+import fangshan.registers.{FangShanRegProbe, FangShanRegistersFile, FangShanRegistersParams}
 import fangshan.utils.{FangShanUtils => utils}
 
 object FangShanParameter {
@@ -44,7 +44,9 @@ case class FangShanParameter(
 
 /** Verification IO of [[FangShan]] */
 class FangShanProbe(parameter: FangShanParameter) extends Bundle {
-  val busy: Bool = Bool()
+  val busy:             Bool             = Bool()
+  val hitGoodTrap:      Bool             = Bool()
+  val fangshanRegProbe: FangShanRegProbe = new FangShanRegProbe(parameter.regParams)
 }
 
 /** Metadata of [[FangShan]]. */
@@ -62,7 +64,7 @@ class FangShanInterface(parameter: FangShanParameter) extends Bundle {
   val input:  DecoupledIO[Bundle] = Flipped(DecoupledIO(new Bundle {}))
   @public
   val output: Bool                = Bool()
-  val probe = Output(Probe(new FangShanProbe(parameter), layers.Verification))
+  val probe:  FangShanProbe       = Output(Probe(new FangShanProbe(parameter), layers.Verification))
 //  val om     = Output(Property[AnyClassType]())
 }
 
@@ -117,12 +119,15 @@ class FangShan(val parameter: FangShanParameter)
   dontTouch(exu.io.input)
   dontTouch(exu.io.output)
 
-  // Assign Probe
-  val probeWire: FangShanProbe = Wire(new FangShanProbe(parameter))
-  define(io.probe, ProbeValue(probeWire))
-  probeWire.busy := exu.io.output.bits.update
-  dontTouch(probeWire)
-  dontTouch(io.probe)
+  layer.block(layers.Verification) {
+    // Assign Probe
+    val probeWire: FangShanProbe = Wire(new FangShanProbe(parameter))
+    define(io.probe, ProbeValue(probeWire))
+    probeWire.busy             := exu.io.output.bits.update
+    probeWire.fangshanRegProbe := probe.read(reg.io.probe)
+    probeWire.hitGoodTrap      := idu.io.output.bits.ctrlSigs.ebreak && (probeWire.fangshanRegProbe.haltValue === 0.U)
+    dontTouch(probeWire)
+  }
 
   // Assign Metadata
   //  val omInstance: Instance[FangShanOM] = Instantiate(new FangShanOM(parameter))

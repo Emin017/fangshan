@@ -6,6 +6,7 @@ package fangshan
 import chisel3._
 import chisel3.experimental.hierarchy.{instantiable, public, Instance, Instantiate}
 import chisel3.experimental.{SerializableModule, SerializableModuleParameter}
+import chisel3.probe.{define, ProbeValue}
 import chisel3.properties.{AnyClassType, Class, ClassType, Property}
 import chisel3.util.circt.dpi.RawUnclockedNonVoidFunctionCall
 import chisel3.util.{Counter, HasExtModuleInline}
@@ -78,6 +79,22 @@ class FangShanTestBench(val parameter: FangShanTestBenchParameter)
     stop(cf"""{"event":"SimulationStop","reason": ${watchdogCode},"cycle":${simulationTime}}\n""")
   }
 
+  // Create Verification Layer block
+  layer.block(layers.Verification) {
+    // We need use probe.read to read the probe value, otherwise chisel will report stack overflow.
+    // FIXME: Check why chisel will report stack overflow when using probe directly.
+    val fangshanProbe = probe.read(dut.io.probe)
+    val hitGoodTrap: Bool = fangshanProbe.hitGoodTrap
+    // Trigger simulation abort when hit bad trap.
+    // Stop simulation when hit good trap.
+    when(stopCondition) {
+      when(hitGoodTrap) {
+        stop(cf"""{"event":"SimulationStop","reason": hit good trap,"cycle":${simulationTime}}\n""")
+      }.elsewhen(!hitGoodTrap) {
+        assert(false.B, cf"""{"event":"SimulationAbort","reason": hit bad trap,"cycle":${simulationTime}}\n""")
+      }
+    }
+  }
   dut.io.input.valid := false.B;
   dut.io.input.bits  := DontCare;
 }
