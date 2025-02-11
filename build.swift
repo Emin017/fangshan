@@ -140,6 +140,14 @@ func runEmu(name: String, buildDir: String) {
   _ = try? createShell("cd \(emuDir) && make -j`nproc` -f V\(name).mk V\(name)")
 }
 
+func runClean(dirPath: String) {
+  /// Run mill clean
+  print("Running mill clean")
+  _ = try? createShell("./mill clean")
+  print("Cleaning up the emu directory")
+  _ = try? createShell("rm -rf \(dirPath)")
+}
+
 do {
   var (name, dirPath) = ("", "")
   print("Enter emit target:")
@@ -159,6 +167,12 @@ do {
     runBuild(name: name, buildDir: dirPath)
     runEmit(name: name, emitDir: dirPath)
     runEmu(name: name, buildDir: dirPath)
+  case "3":
+    name = "FangShanEmu"
+    dirPath = "./fangshan-sim-result"
+    runEmu(name: name, buildDir: dirPath)
+  case "clean":
+    runClean(dirPath: dirPath)
   default:
     print("Invalid target")
     exit(1)
