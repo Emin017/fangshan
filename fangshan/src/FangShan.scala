@@ -58,13 +58,12 @@ class FangShanOM(parameter: FangShanParameter) extends Class {
 
 /** Interface of [[FangShan]]. */
 class FangShanInterface(parameter: FangShanParameter) extends Bundle {
-  val clock:  Clock               = Input(Clock())
-  val reset:  Reset               = Input(Bool())
+  val clock: Clock               = Input(Clock())
+  val reset: Reset               = Input(Bool())
   @public
-  val input:  DecoupledIO[Bundle] = Flipped(DecoupledIO(new Bundle {}))
+  val input: DecoupledIO[Bundle] = Flipped(DecoupledIO(new Bundle {}))
   @public
-  val output: Bool                = Bool()
-  val probe:  FangShanProbe       = Output(Probe(new FangShanProbe(parameter), layers.Verification))
+  val probe: FangShanProbe       = Output(Probe(new FangShanProbe(parameter), layers.Verification))
 //  val om     = Output(Property[AnyClassType]())
 }
 
@@ -97,8 +96,6 @@ class FangShan(val parameter: FangShanParameter)
   ifu.io.input.bits.address := pc(30, 2)
   ifu.io.input.valid        := !io.reset.asBool
   idu.io.input <> ifu.io.output
-  idu.io.input.bits.inst    := ifu.io.output.bits.inst
-  dontTouch(ifu.io.output.bits.inst)
   idu.io.output <> exu.io.input
 
   reg.io.writeEnable := exu.io.output.bits.update
@@ -110,15 +107,16 @@ class FangShan(val parameter: FangShanParameter)
   dnpc := Mux(exu.io.output.bits.update, pc + 4.U, snpc)
   pc   := dnpc
 
-  io.output := exu.io.output.bits.update
-
-  dontTouch(io.output)
+  dontTouch(ifu.io.output.bits.inst)
   dontTouch(ifu.io.output)
   dontTouch(idu.io.input)
   dontTouch(idu.io.output)
   dontTouch(exu.io.input)
   dontTouch(exu.io.output)
 
+  // Verification block
+  // We can use probe to port some signals to the verification layer,
+  // then we can use these signals to do some verification.
   layer.block(layers.Verification) {
     // Assign Probe
     val probeWire: FangShanProbe = Wire(new FangShanProbe(parameter))
@@ -132,5 +130,4 @@ class FangShan(val parameter: FangShanParameter)
   // Assign Metadata
   //  val omInstance: Instance[FangShanOM] = Instantiate(new FangShanOM(parameter))
   //  io.om := omInstance.getPropertyReference.asAnyClassType
-
 }
