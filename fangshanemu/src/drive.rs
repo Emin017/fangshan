@@ -6,7 +6,7 @@ use svdpi::{get_time, SvScope};
 const BUILTIN_IMG: &[u32] = &[
     0x00100093, // addi x1, x0, 1
     0x00200113, // addi x2, x0, 2
-    0x002081b3, // add x3, x1, x2
+    0x00000513, // addi a0, x0, 0
     0x00100073, // ebreak
 ];
 

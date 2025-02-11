@@ -6,9 +6,10 @@ package fangshan
 import chisel3._
 import chisel3.experimental.hierarchy.{instantiable, public, Instance, Instantiate}
 import chisel3.experimental.{SerializableModule, SerializableModuleParameter}
+import chisel3.probe.{define, ProbeValue}
 import chisel3.properties.{AnyClassType, Class, ClassType, Property}
 import chisel3.util.circt.dpi.RawUnclockedNonVoidFunctionCall
-import chisel3.util.{Counter, HasExtModuleInline}
+import chisel3.util.{Counter, HasExtModuleInline, RegEnable}
 
 object FangShanTestBenchParameter {
   implicit def rwP: upickle.default.ReadWriter[FangShanTestBenchParameter] =
@@ -48,6 +49,7 @@ class FangShanTestBench(val parameter: FangShanTestBenchParameter)
     with SerializableModule[FangShanTestBenchParameter]
     with ImplicitClock
     with ImplicitReset {
+  layer.enable(layers.Verification) // Enable Verification Layer in this module
   override protected def implicitClock: Clock                  = verbatim.io.clock
   override protected def implicitReset: Reset                  = verbatim.io.reset
   // Instantiate Drivers
@@ -64,20 +66,38 @@ class FangShanTestBench(val parameter: FangShanTestBenchParameter)
   dut.io.clock := implicitClock
   dut.io.reset := implicitReset
 
+  // We need use probe.read to read the probe value, otherwise chisel will report stack overflow.
+  // FIXME: Check why chisel will report stack overflow when using probe directly.
+  val fangshanProbe: FangShanProbe = probe.read(dut.io.probe)
+  val hitGoodTrap:   Bool          = RegNext(fangshanProbe.hitGoodTrap)
+  val busy:          Bool          = fangshanProbe.busy
+
   // Simulation Logic
   val simulationTime: UInt = RegInit(0.U(64.W))
   simulationTime := simulationTime + 1.U
+
+  val running: Bool = simulationTime > 0.U && simulationTime < parameter.timeout.U
 
   val (_, callWatchdog) = Counter(true.B, parameter.timeout / 2)
   val watchdogCode: UInt = RawUnclockedNonVoidFunctionCall("fangshan_watchdog", UInt(8.W))(callWatchdog)
 
   // Stop simulation when watchdogCode is not 0 or the DUT is not busy after reset cycle.
   val stopCondition: Bool = (watchdogCode =/= 0.U) ||
-    (!dut.io.reset.asBool && !dut.io.output && (simulationTime > 0.U))
+    (!dut.io.reset.asBool && !busy && running)
   when(stopCondition) {
     stop(cf"""{"event":"SimulationStop","reason": ${watchdogCode},"cycle":${simulationTime}}\n""")
   }
 
+  // Trigger simulation abort when hit bad trap.
+  // Stop simulation when hit good trap.
+  // FIXME: This will create a extra cycle when hit good/bad trap, we need to fix it.
+  when(running && !busy) {
+    when(hitGoodTrap) {
+      stop(cf"""{"event":"SimulationStop","reason": hit good trap,"cycle":${simulationTime}}\n""")
+    }.elsewhen(!hitGoodTrap) {
+      assert(false.B, cf"""{"event":"SimulationAbort","reason": hit bad trap,"cycle":${simulationTime}}\n""")
+    }
+  }
   dut.io.input.valid := false.B;
   dut.io.input.bits  := DontCare;
 }

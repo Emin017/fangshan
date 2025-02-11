@@ -13,7 +13,7 @@ import fangshan.idu.{FangShanIDU, FangShanIDUParams}
 import fangshan.ifu.{FangShanIFU, FangShanIFUParams}
 import fangshan.exu.{FangShanEXU, FangShanEXUParams}
 import fangshan.memory.FangShanMemoryParams
-import fangshan.registers.{FangShanRegistersFile, FangShanRegistersParams}
+import fangshan.registers.{FangShanRegProbe, FangShanRegistersFile, FangShanRegistersParams}
 import fangshan.utils.{FangShanUtils => utils}
 
 object FangShanParameter {
@@ -44,7 +44,9 @@ case class FangShanParameter(
 
 /** Verification IO of [[FangShan]] */
 class FangShanProbe(parameter: FangShanParameter) extends Bundle {
-  val busy: Bool = Bool()
+  val busy:             Bool             = Bool()
+  val hitGoodTrap:      Bool             = Bool()
+  val fangshanRegProbe: FangShanRegProbe = new FangShanRegProbe(parameter.regParams)
 }
 
 /** Metadata of [[FangShan]]. */
@@ -56,13 +58,12 @@ class FangShanOM(parameter: FangShanParameter) extends Class {
 
 /** Interface of [[FangShan]]. */
 class FangShanInterface(parameter: FangShanParameter) extends Bundle {
-  val clock:  Clock               = Input(Clock())
-  val reset:  Reset               = Input(Bool())
+  val clock: Clock               = Input(Clock())
+  val reset: Reset               = Input(Bool())
   @public
-  val input:  DecoupledIO[Bundle] = Flipped(DecoupledIO(new Bundle {}))
+  val input: DecoupledIO[Bundle] = Flipped(DecoupledIO(new Bundle {}))
   @public
-  val output: Bool                = Bool()
-  val probe = Output(Probe(new FangShanProbe(parameter), layers.Verification))
+  val probe: FangShanProbe       = Output(Probe(new FangShanProbe(parameter), layers.Verification))
 //  val om     = Output(Property[AnyClassType]())
 }
 
@@ -95,8 +96,6 @@ class FangShan(val parameter: FangShanParameter)
   ifu.io.input.bits.address := pc(30, 2)
   ifu.io.input.valid        := !io.reset.asBool
   idu.io.input <> ifu.io.output
-  idu.io.input.bits.inst    := ifu.io.output.bits.inst
-  dontTouch(ifu.io.output.bits.inst)
   idu.io.output <> exu.io.input
 
   reg.io.writeEnable := exu.io.output.bits.update
@@ -108,24 +107,27 @@ class FangShan(val parameter: FangShanParameter)
   dnpc := Mux(exu.io.output.bits.update, pc + 4.U, snpc)
   pc   := dnpc
 
-  io.output := exu.io.output.bits.update
-
-  dontTouch(io.output)
+  dontTouch(ifu.io.output.bits.inst)
   dontTouch(ifu.io.output)
   dontTouch(idu.io.input)
   dontTouch(idu.io.output)
   dontTouch(exu.io.input)
   dontTouch(exu.io.output)
 
-  // Assign Probe
-  val probeWire: FangShanProbe = Wire(new FangShanProbe(parameter))
-  define(io.probe, ProbeValue(probeWire))
-  probeWire.busy := exu.io.output.bits.update
-  dontTouch(probeWire)
-  dontTouch(io.probe)
+  // Verification block
+  // We can use probe to port some signals to the verification layer,
+  // then we can use these signals to do some verification.
+  layer.block(layers.Verification) {
+    // Assign Probe
+    val probeWire: FangShanProbe = Wire(new FangShanProbe(parameter))
+    define(io.probe, ProbeValue(probeWire))
+    probeWire.busy             := exu.io.output.bits.update
+    probeWire.fangshanRegProbe := probe.read(reg.io.probe)
+    probeWire.hitGoodTrap      := idu.io.output.bits.ctrlSigs.ebreak && (probeWire.fangshanRegProbe.haltValue === 0.U)
+    dontTouch(probeWire)
+  }
 
   // Assign Metadata
   //  val omInstance: Instance[FangShanOM] = Instantiate(new FangShanOM(parameter))
   //  io.om := omInstance.getPropertyReference.asAnyClassType
-
 }

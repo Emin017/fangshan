@@ -86,9 +86,11 @@ class FangShanIDU(val parameter: FangShanParameter)
 
   def signEXT(imm: UInt) = Cat(Fill(20, imm(11)), imm)
 
-  val inst: UInt      = io.input.bits.inst
-  val src:  Seq[Data] = srcGen(inst)
-  io.output.valid                := io.input.valid
+  val inst:      UInt      = io.input.bits.inst
+  val src:       Seq[Data] = srcGen(inst)
+  val instValid: Bool      = isEbreak(inst) || isAddi(inst)
+
+  io.output.valid                := io.input.valid && instValid
   io.output.bits.aluBundle.rs1   := src.head
   io.output.bits.aluBundle.rs2   := src.last
   io.output.bits.ctrlSigs.rd     := rdGen(inst)
