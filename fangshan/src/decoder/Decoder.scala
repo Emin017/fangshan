@@ -2,7 +2,7 @@ package fangshan.rtl.decoder
 
 import chisel3._
 import chisel3.util.BitPat
-import chisel3.util.experimental.decode.{DecodeBundle, DecodeField, DecodePattern, DecodeTable}
+import chisel3.util.experimental.decode.{BoolDecodeField, DecodeBundle, DecodeField, DecodePattern, DecodeTable}
 import org.chipsalliance.rvdecoderdb.Instruction
 
 case class FangShanDecodePattern(inst: Instruction) extends DecodePattern {
@@ -43,9 +43,37 @@ object ImmType extends DecodeField[FangShanDecodePattern, UInt] {
   }
 }
 
+object Rs1En extends BoolDecodeField[FangShanDecodePattern] {
+  def name: String = "rs1En"
+
+  override def genTable(i: FangShanDecodePattern): BitPat = i.inst.name match {
+    case "add" | "sub" | "and" | "or" => y
+    case _                            => n
+  }
+}
+
+object Rs2En extends BoolDecodeField[FangShanDecodePattern] {
+  def name: String = "rs2En"
+
+  override def genTable(i: FangShanDecodePattern): BitPat = i.inst.name match {
+    case "add" | "sub" | "and" | "or" => y
+    case _                            => n
+  }
+}
+
+object RdEn extends BoolDecodeField[FangShanDecodePattern] {
+  def name: String = "rdEn"
+
+  override def genTable(i: FangShanDecodePattern): BitPat = i.inst.name match {
+    case "add" | "sub" | "and" | "or" => y
+    case _                            => n
+  }
+}
+
 object Decoder {
-  private def allDecodeField:   Seq[DecodeField[FangShanDecodePattern, UInt]] = Seq(Opcode, ImmType)
-  private def allDecodePattern: Seq[FangShanDecodePattern]                    =
+  private def allDecodeField:   Seq[DecodeField[FangShanDecodePattern, _ >: Bool <: UInt]] =
+    Seq(Opcode, ImmType, Rs1En, Rs2En, RdEn)
+  private def allDecodePattern: Seq[FangShanDecodePattern]                                 =
     allInstructions.map(FangShanDecodePattern(_)).toSeq.sortBy(_.inst.name)
 
   private def decodeTable: DecodeTable[FangShanDecodePattern] = new DecodeTable(allDecodePattern, allDecodeField)
