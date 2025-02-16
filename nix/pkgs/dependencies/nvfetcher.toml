@@ -2,3 +2,13 @@
 src.git = "https://github.com/chipsalliance/chisel"
 src.branch = "main"
 fetch.github = "chipsalliance/chisel"
+
+[rvdecoderdb]
+src.git = "https://github.com/Emin017/rvdecoderdb"
+src.branch = "mill-0.11.x"
+fetch.github = "Emin017/rvdecoderdb"
+
+[riscv-opcodes]
+src.git = "https://github.com/riscv/riscv-opcodes"
+src.branch = "master"
+fetch.github = "riscv/riscv-opcodes"
