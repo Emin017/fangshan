@@ -1,0 +1,32 @@
+name: Update-flake-lock
+on:
+  workflow_dispatch: # allows manual triggering
+  schedule:
+    - cron: '0 8 * * 5,6' # every Saturday and Sunday at 8:00 UTC
+jobs:
+  lockfile:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Nix
+        uses: cachix/install-nix-action@v30
+      - name: Update flake.lock
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: DeterminateSystems/update-flake-lock@v24
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          git-author-name: 'GitHub Actions[bot]'
+          git-author-email: '41898282+github-actions[bot]@users.noreply.github.com'
+          git-committer-name: 'GitHub Actions[bot]'
+          git-committer-email: '41898282+github-actions[bot]@users.noreply.github.com'
+          pr-title: "[deps] update flake.lock" # Title of PR to be created
+          pr-labels: | # Labels to be set on the PR
+            dependencies
+            github-actions
+    env:
+      GIT_COMMIT_MESSAGE: "[deps] update flake.lock"
