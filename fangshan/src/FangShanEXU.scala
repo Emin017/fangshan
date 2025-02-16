@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MulanPSL-2.0
 // SPDX-FileCopyrightText: 2025 Emin (Qiming Chu) <cchuqiming@gmail.com>
 
-package fangshan.exu
+package fangshan.rtl
 
 import chisel3._
 import chisel3.experimental.hierarchy.instantiable
 import chisel3.util.{log2Ceil, DecoupledIO, Valid}
-import fangshan.bundle.{EXUInputBundle, EXUOutputBundle}
-import fangshan.FangShanParameter
 
 /** EXUParams, which is used to define the parameters of the EXU
   * @param regNum

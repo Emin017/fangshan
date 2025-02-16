@@ -4,7 +4,7 @@
 package fangshan.elaborator
 
 import mainargs._
-import fangshan.{FangShanTestBench, FangShanTestBenchParameter, TestVerbatimParameter}
+import fangshan.testbench.{FangShanTestBench, FangShanTestBenchParameter, TestVerbatimParameter}
 import fangshan.elaborator.FangShanMain.FangShanParameterMain
 import chisel3.experimental.util.SerializableModuleElaborator
 

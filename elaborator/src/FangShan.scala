@@ -4,7 +4,7 @@
 package fangshan.elaborator
 
 import mainargs._
-import fangshan.{FangShan, FangShanParameter}
+import fangshan.rtl.{FangShan, FangShanParameter}
 import chisel3.experimental.util.SerializableModuleElaborator
 
 object FangShanMain extends SerializableModuleElaborator {

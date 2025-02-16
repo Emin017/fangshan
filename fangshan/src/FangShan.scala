@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MulanPSL-2.0
 // SPDX-FileCopyrightText: 2025 Emin (Qiming Chu) <cchuqiming@gmail.com>
 
-package fangshan
+package fangshan.rtl
 
 import chisel3._
 import chisel3.experimental.hierarchy.{instantiable, public, Instance, Instantiate}
@@ -9,11 +9,6 @@ import chisel3.experimental.{SerializableModule, SerializableModuleParameter}
 import chisel3.probe.{define, Probe, ProbeValue}
 import chisel3.properties.{Class, Property}
 import chisel3.util.DecoupledIO
-import fangshan.idu.{FangShanIDU, FangShanIDUParams}
-import fangshan.ifu.{FangShanIFU, FangShanIFUParams}
-import fangshan.exu.{FangShanEXU, FangShanEXUParams}
-import fangshan.memory.FangShanMemoryParams
-import fangshan.registers.{FangShanRegProbe, FangShanRegistersFile, FangShanRegistersParams}
 import fangshan.utils.{FangShanUtils => utils}
 
 object FangShanParameter {

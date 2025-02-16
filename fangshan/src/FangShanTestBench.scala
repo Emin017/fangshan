@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MulanPSL-2.0
 // SPDX-FileCopyrightText: 2025 Emin (Qiming Chu) <cchuqiming@gmail.com>
 
-package fangshan
+package fangshan.testbench
 
 import chisel3._
 import chisel3.experimental.hierarchy.{instantiable, public, Instance, Instantiate}
 import chisel3.experimental.{SerializableModule, SerializableModuleParameter}
-import chisel3.probe.{define, ProbeValue}
 import chisel3.properties.{AnyClassType, Class, ClassType, Property}
 import chisel3.util.circt.dpi.RawUnclockedNonVoidFunctionCall
 import chisel3.util.{Counter, HasExtModuleInline, RegEnable}
+import fangshan.rtl.{FangShan, FangShanParameter, FangShanProbe}
 
 object FangShanTestBenchParameter {
   implicit def rwP: upickle.default.ReadWriter[FangShanTestBenchParameter] =

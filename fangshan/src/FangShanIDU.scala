@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MulanPSL-2.0
 // SPDX-FileCopyrightText: 2025 Emin (Qiming Chu) <cchuqiming@gmail.com>
 
-package fangshan.idu
+package fangshan.rtl
 
 import chisel3._
 import chisel3.experimental.hierarchy.instantiable
 import chisel3.util.{log2Ceil, Cat, DecoupledIO, Fill, Valid}
-import fangshan.FangShanParameter
-import fangshan.bundle.{IDUInputBundle, IDUOutputBundle}
 
 /** IDUParams, which is used to define the parameters of the IDU
   * @param regNum

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MulanPSL-2.0
 // SPDX-FileCopyrightText: 2025 Emin (Qiming Chu) <cchuqiming@gmail.com>
 
-package fangshan.bundle
+package fangshan.rtl
 
 import chisel3._
 

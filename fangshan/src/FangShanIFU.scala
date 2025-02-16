@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: MulanPSL-2.0
 // SPDX-FileCopyrightText: 2025 Emin (Qiming Chu) <cchuqiming@gmail.com>
 
-package fangshan.ifu
+package fangshan.rtl
 
 import chisel3._
 import chisel3.experimental.hierarchy.instantiable
 import chisel3.util.{log2Ceil, DecoupledIO, Valid}
-import fangshan.bundle.{IFUInputBundle, IFUOutputBundle}
-import fangshan.FangShanParameter
-import fangshan.memory.FangShanMemory
 import fangshan.utils.{FangShanUtils => utils}
 
 /** IFUParams, which is used to define the parameters of the IFU
@@ -38,8 +35,6 @@ class FangShanIFUInterface(parameter: FangShanIFUParams) extends Bundle {
   val reset:  Reset                       = Input(Bool())
   val input:  DecoupledIO[IFUInputBundle] = Flipped(DecoupledIO(parameter.inputBundle))
   val output: Valid[IFUOutputBundle]      = Valid(parameter.outputBundle)
-  //  val probe  = Output(Probe(new FangShanProbe(parameter), layers.Verification))
-  //  val om     = Output(Property[AnyClassType]())
 }
 
 /** IFU, Instruction Fetch Unit

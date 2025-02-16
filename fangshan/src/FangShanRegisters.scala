@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MulanPSL-2.0
 // SPDX-FileCopyrightText: 2025 Emin (Qiming Chu) <cchuqiming@gmail.com>
 
-package fangshan.registers
+package fangshan.rtl
 
 import chisel3._
 import chisel3.experimental.hierarchy.instantiable
 import chisel3.probe.{define, Probe, ProbeValue}
 import chisel3.util.log2Ceil
-import fangshan.FangShanParameter
 
 /** FangShanRegistersParams, which is used to define the parameters of the registers
   * @param num

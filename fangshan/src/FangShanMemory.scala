@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MulanPSL-2.0
 // SPDX-FileCopyrightText: 2025 Emin (Qiming Chu) <cchuqiming@gmail.com>
 
-package fangshan.memory
+package fangshan.rtl
 
 import chisel3._
 import chisel3.util.Valid
 import chisel3.util.circt.dpi.RawUnclockedNonVoidFunctionCall
-import fangshan.FangShanParameter
-import fangshan.bundle.{MemReadIO, MemWriteIO}
+import fangshan.rtl.FangShanParameter
 
 /** Memory parameters, include data width and write mask
   * @param xlen
