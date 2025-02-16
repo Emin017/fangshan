@@ -10,6 +10,7 @@ import mill.scalalib.TestModule.Utest
 import mill.util.Jvm
 import coursier.maven.MavenRepository
 import $file.dependencies.chisel.build
+import $file.dependencies.rvdecoderdb.common
 import $file.common
 
 object deps {
@@ -26,9 +27,21 @@ trait Chisel extends millbuild.dependencies.chisel.build.Chisel {
   override def millSourcePath = os.pwd / "dependencies" / "chisel"
 }
 
-object fangshan extends FangShan
-trait FangShan extends millbuild.common.HasChisel with ScalafmtModule {
+object rvdecoderdb extends RVDecoderDB
+
+trait RVDecoderDB extends millbuild.dependencies.rvdecoderdb.common.RVDecoderDBJVMModule {
   def scalaVersion = T(deps.scalaVer)
+  def osLibIvy = deps.oslib
+  def upickleIvy = deps.upickle
+  override def millSourcePath = os.pwd / "dependencies" / "rvdecoderdb" / "rvdecoderdb"
+}
+
+object fangshan extends FangShan
+trait FangShan extends millbuild.common.FangShanModule with ScalafmtModule {
+  def scalaVersion = T(deps.scalaVer)
+
+  def rvdecoderdbModule = rvdecoderdb
+  def riscvOpcodesPath = T(PathRef(os.pwd / "dependencies" / "riscv-opcodes"))
 
   def chiselModule = Some(chisel)
   def chiselPluginJar = T(Some(chisel.pluginModule.jar()))

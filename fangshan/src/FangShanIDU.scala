@@ -5,7 +5,9 @@ package fangshan.rtl
 
 import chisel3._
 import chisel3.experimental.hierarchy.instantiable
+import chisel3.util.experimental.decode.DecodeBundle
 import chisel3.util.{log2Ceil, Cat, DecoupledIO, Fill, Valid}
+import fangshan.rtl.decoder._
 
 /** IDUParams, which is used to define the parameters of the IDU
   * @param regNum
@@ -84,9 +86,11 @@ class FangShanIDU(val parameter: FangShanParameter)
 
   def signEXT(imm: UInt) = Cat(Fill(20, imm(11)), imm)
 
-  val inst:      UInt      = io.input.bits.inst
-  val src:       Seq[Data] = srcGen(inst)
-  val instValid: Bool      = isEbreak(inst) || isAddi(inst)
+  val inst:         UInt         = io.input.bits.inst
+  val src:          Seq[Data]    = srcGen(inst)
+  val decodeResult: DecodeBundle = Decoder.decode(inst)
+  dontTouch(decodeResult)
+  val instValid:    Bool         = isEbreak(inst) || isAddi(inst)
 
   io.output.valid                := io.input.valid && instValid
   io.output.bits.aluBundle.rs1   := src.head
