@@ -50,7 +50,7 @@ trait HasRVDecoderDB extends ScalaModule {
         f.baseName.contains("rv64_i") ||
           f.baseName.contains("rv32_i") ||
           f.baseName.contains("rv_i") ||
-          f.ext == "csv" // This csv file should be included, and it is needed by the decoder
+          f.ext == "csv" // This csv file should be included, and it is needed by the rvdecoderdb
       )
       .groupBy(_.segments.contains("unratified"))
       .map {
