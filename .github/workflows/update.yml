@@ -1,0 +1,57 @@
+name: Update-flake-lock
+on:
+  workflow_dispatch: # allows manual triggering
+  schedule:
+    - cron: '0 8 * * 5,6' # every Saturday and Sunday at 8:00 UTC
+jobs:
+  lockfile:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Update flake.lock
+        run: |
+          UPDATE_FLAKE_OUTPUT=$(nix flake update)
+          echo "$UPDATE_FLAKE_OUTPUT" >> $GITHUB_ENV
+      - name: Build and test
+        run: |
+          nix run -L '.#fangshan.verilated'
+      - name: Create Pull Request
+        id: update
+        run: |
+          echo "Creating a new pull request..."
+          BRANCH_NAME="update-flake-lock"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "GitHub Actions[bot]"
+          git fetch origin
+          git pull origin main
+          # Create a new branch
+          echo "Creating a new branch..."
+          git checkout -b $BRANCH_NAME
+          git add 'flake.lock'
+          if ! git diff --quiet --cached --exit-code; then
+              updatedFiles=$(git diff --cached --name-only)
+              echo "Have changes: $updatedFiles"
+              git commit -m "[deps] update flake.lock"
+              # Push the changes
+              echo "Pushing changes..."
+              git push origin "$BRANCH_NAME" --force-with-lease
+              # Create a new PR
+              echo "Creating a new PR..."
+              gh pr create \
+                --reviewer Emin017 \
+                --title "[deps] update flake.lock" \
+                --body "Auto-generated PR to merge '$BRANCH_NAME' into 'main' \n${{ env.UPDATE_FLAKE_OUTPUT }}" \
+                --base main \
+                --head "$BRANCH_NAME" \
+                --repo "${{ github.repository }}"
+              echo "PR created!"
+            fi
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
