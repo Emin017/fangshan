@@ -89,8 +89,13 @@ class FangShanIDU(val parameter: FangShanParameter)
   val inst:         UInt         = io.input.bits.inst
   val src:          Seq[Data]    = srcGen(inst)
   val decodeResult: DecodeBundle = Decoder.decode(inst)
+  val decodeOpcode: UInt         = decodeResult(Opcode)
+
+  io.output.bits.ctrlSigs.opcode := opcode(inst)
+  dontTouch(io.output.bits.ctrlSigs.opcode)
   dontTouch(decodeResult)
-  val instValid:    Bool         = isEbreak(inst) || isAddi(inst)
+  dontTouch(decodeOpcode)
+  val instValid: Bool = isEbreak(inst) || isAddi(inst)
 
   io.output.valid                := io.input.valid && instValid
   io.output.bits.aluBundle.rs1   := src.head
@@ -98,6 +103,7 @@ class FangShanIDU(val parameter: FangShanParameter)
   io.output.bits.ctrlSigs.rd     := rdGen(inst)
   io.output.bits.aluBundle.aluOp := aluOpGen(inst)
   io.output.bits.ctrlSigs.ebreak := isEbreak(inst)
+  io.output.bits.ctrlSigs.rdEn   := decodeResult(RdEn)
 
   assert(!isEbreak(inst) || isAddi(inst), "Invalid instruction")
 }

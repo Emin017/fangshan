@@ -10,35 +10,45 @@ case class FangShanDecodePattern(inst: Instruction) extends DecodePattern {
 }
 
 object Opcode extends DecodeField[FangShanDecodePattern, UInt] {
-  def name:                               String = "opcode"
-  override def chiselType:                UInt   = UInt(8.W)
+  def name: String = "opcode"
+
+  override def chiselType: UInt = UInt(8.W)
+
   def genTable(i: FangShanDecodePattern): BitPat = i.inst.name match {
-    case "add" => BitPat("b00000001")
-    case "sub" => BitPat("b00000010")
-    case "and" => BitPat("b00000011")
-    case "or"  => BitPat("b00000100")
-    case _     => BitPat("b00000000")
+    case "addi" => BitPat("b00000001")
+    case "slli" => BitPat("b00000010")
+    case "srli" => BitPat("b00000011")
+    case "srai" => BitPat("b00000100")
+    case "andi" => BitPat("b00000101")
+    case "ori"  => BitPat("b00000110")
+    case "xori" => BitPat("b00000111")
+    case _      => {
+      println(s"Unknown instruction: ${i.inst}")
+      BitPat("b00000000")
+    }
   }
 }
 
 object ImmType extends DecodeField[FangShanDecodePattern, UInt] {
-  def name:                               String = "imm_type"
-  override def chiselType:                UInt   = UInt(3.W)
+  def name: String = "imm_type"
+
+  override def chiselType: UInt = UInt(7.W)
+
   def genTable(i: FangShanDecodePattern): BitPat = {
     val immType = i.inst.args
       .map(_.name match {
-        case "imm12"                 => BitPat("b000")
-        case "imm12hi" | "imm12lo"   => BitPat("b001")
-        case "bimm12hi" | "bimm12lo" => BitPat("b010")
-        case "imm20"                 => BitPat("b011")
-        case "jimm20"                => BitPat("b100")
-        case "shamtd"                => BitPat("b101")
-        case "shamtw"                => BitPat("b110")
-        case _                       => BitPat("b???")
+        case "imm12"                 => BitPat("b0000001")
+        case "imm12hi" | "imm12lo"   => BitPat("b0000010")
+        case "bimm12hi" | "bimm12lo" => BitPat("b0000011")
+        case "imm20"                 => BitPat("b0000100")
+        case "jimm20"                => BitPat("b0000101")
+        case "shamtd"                => BitPat("b0000110")
+        case "shamtw"                => BitPat("b0000111")
+        case _                       => BitPat("b???????")
       })
-      .filterNot(_ == BitPat("b???"))
+      .filterNot(_ == BitPat("b???????"))
       .headOption
-      .getOrElse(BitPat("b???"))
+      .getOrElse(BitPat("b???????"))
     immType
   }
 }
@@ -46,27 +56,54 @@ object ImmType extends DecodeField[FangShanDecodePattern, UInt] {
 object Rs1En extends BoolDecodeField[FangShanDecodePattern] {
   def name: String = "rs1En"
 
-  override def genTable(i: FangShanDecodePattern): BitPat = i.inst.name match {
-    case "add" | "sub" | "and" | "or" => y
-    case _                            => n
+  override def genTable(i: FangShanDecodePattern): BitPat = {
+    val rs1En =
+      if (
+        i.inst.args
+          .map(_.name)
+          .contains("rs1")
+      ) {
+        y
+      } else {
+        n
+      }
+    rs1En
   }
 }
 
 object Rs2En extends BoolDecodeField[FangShanDecodePattern] {
   def name: String = "rs2En"
 
-  override def genTable(i: FangShanDecodePattern): BitPat = i.inst.name match {
-    case "add" | "sub" | "and" | "or" => y
-    case _                            => n
+  override def genTable(i: FangShanDecodePattern): BitPat = {
+    val rs2En =
+      if (
+        i.inst.args
+          .map(_.name)
+          .contains("rs2")
+      ) {
+        y
+      } else {
+        n
+      }
+    rs2En
   }
 }
 
 object RdEn extends BoolDecodeField[FangShanDecodePattern] {
   def name: String = "rdEn"
 
-  override def genTable(i: FangShanDecodePattern): BitPat = i.inst.name match {
-    case "add" | "sub" | "and" | "or" => y
-    case _                            => n
+  override def genTable(i: FangShanDecodePattern): BitPat = {
+    val rdEn =
+      if (
+        i.inst.args
+          .map(_.name)
+          .contains("rd")
+      ) {
+        y
+      } else {
+        n
+      }
+    rdEn
   }
 }
 
@@ -76,7 +113,11 @@ object Decoder {
   private def allDecodePattern: Seq[FangShanDecodePattern]                                 =
     allInstructions.map(FangShanDecodePattern(_)).toSeq.sortBy(_.inst.name)
 
-  private def decodeTable: DecodeTable[FangShanDecodePattern] = new DecodeTable(allDecodePattern, allDecodeField)
+  private def decodeTable: DecodeTable[FangShanDecodePattern] = {
+    val table = new DecodeTable(allDecodePattern, allDecodeField)
+    println(table.table)
+    table
+  }
 
   final def decode: UInt => DecodeBundle = decodeTable.decode
   final def bundle: DecodeBundle         = decodeTable.bundle
@@ -86,9 +127,11 @@ object Decoder {
       .instructions(org.chipsalliance.rvdecoderdb.extractResource(getClass.getClassLoader))
       .filter { instruction =>
         instruction.instructionSet.name match {
+          case "rv_i"   => true
           case "rv32_i" => true // only support rv32i
           case _        => false
         }
       }
+      .filter(_.pseudoFrom.isEmpty)
   }.toSeq
 }

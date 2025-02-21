@@ -4,6 +4,7 @@
 package fangshan.rtl
 
 import chisel3._
+import chisel3.util.experimental.decode.DecodeBundle
 
 /** Memory read interface, includes [[address]] */
 class MemReadIO(width: Int) extends Bundle {
@@ -34,7 +35,9 @@ class IFUOutputBundle(width: Int) extends Bundle {
   */
 class CtrlSigBundle extends Bundle {
   val rd:     UInt = UInt(4.W)
+  val rdEn:   Bool = Bool()
   val ebreak: Bool = Bool()
+  val opcode: UInt = UInt(8.W)
 }
 
 /** ALUInputBundle, which is used to define the input bundle of the ALU, include [[rs1]], [[rs2]], [[aluOp]]
