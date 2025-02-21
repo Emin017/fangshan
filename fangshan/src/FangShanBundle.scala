@@ -4,6 +4,7 @@
 package fangshan.rtl
 
 import chisel3._
+import chisel3.util.experimental.decode.DecodeBundle
 
 /** Memory read interface, includes [[address]] */
 class MemReadIO(width: Int) extends Bundle {

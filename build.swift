@@ -150,9 +150,11 @@ func runClean(dirPath: String) {
 
 do {
   var (name, dirPath) = ("", "")
-  print("Enter emit target:")
+  print("Enter target:")
   print("1. FangShan\n")
   print("2. FangShanTestbench\n")
+  print("3. FangShanEmu\n")
+  print("4. Clean\n")
   print("Your choice:")
   let target = readLine(strippingNewline: true)
   switch target {
