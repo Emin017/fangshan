@@ -74,20 +74,18 @@ class FangShanIDU(val parameter: FangShanParameter)
 
   val inst:            UInt         = io.input.bits.inst
   val decodeResult:    DecodeBundle = Decoder.decode(inst)
+  val decodeRs1En:     Bool         = decodeResult(Rs1En)
+  val decodeRs2En:     Bool         = decodeResult(Rs2En)
+  val decodeRdEn:      Bool         = decodeResult(RdEn)
   val decodeOpcode:    UInt         = decodeResult(Opcode)
   val decodeAluOpcode: UInt         = decodeResult(AluOpcode)
 
-  def srcGen(inst: UInt): Seq[Data] = {
-    Seq(inst(19, 15), Mux(decodeAluOpcode(0), immI(inst), inst(24, 20)))
-  }
-
-  val src:       Seq[Data] = srcGen(inst)
   val instValid: Bool      = isEbreak(inst) || isAddi(decodeOpcode)
 
   io.output.valid                := io.input.valid && instValid
-  io.output.bits.aluBundle.rs1   := src.head
-  io.output.bits.aluBundle.rs2   := src.last
-  io.output.bits.ctrlSigs.rd     := Mux(decodeResult(RdEn), inst(11, 7), 0.U)
+  io.output.bits.aluBundle.rs1   := Mux(decodeRs1En, inst(19, 15), 0.U)
+  io.output.bits.aluBundle.rs2   := Mux(decodeRs2En, inst(24, 20), immI(inst))
+  io.output.bits.ctrlSigs.rd     := Mux(decodeRdEn, inst(11, 7), 0.U)
   io.output.bits.aluBundle.aluOp := decodeAluOpcode
   io.output.bits.ctrlSigs.ebreak := isEbreak(inst)
 
