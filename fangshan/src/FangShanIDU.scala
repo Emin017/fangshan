@@ -68,10 +68,6 @@ class FangShanIDU(val parameter: FangShanParameter)
 
   def immI(inst: UInt): UInt = signEXT(inst(31, 20))
 
-  def isAddi(opcode: UInt): Bool = opcode === decoderParams.addiOpcode
-
-  def isEbreak(opcode: UInt): Bool = opcode === decoderParams.ebreakOpcode
-
   val inst:            UInt         = io.input.bits.inst
   val decodeResult:    DecodeBundle = Decoder.decode(inst)
   val decodeRs1En:     Bool         = decodeResult(Rs1En)
@@ -80,17 +76,17 @@ class FangShanIDU(val parameter: FangShanParameter)
   val decodeOpcode:    UInt         = decodeResult(Opcode)
   val decodeAluOpcode: UInt         = decodeResult(AluOpcode)
 
-  val instValid: Bool = isEbreak(decodeOpcode) || isAddi(decodeOpcode)
+  val instValid: Bool = decoderParams.isInOpcodeSet(decodeOpcode)
 
   io.output.valid                := io.input.valid && instValid
   io.output.bits.aluBundle.rs1   := Mux(decodeRs1En, inst(19, 15), 0.U)
   io.output.bits.aluBundle.rs2   := Mux(decodeRs2En, inst(24, 20), immI(inst))
   io.output.bits.ctrlSigs.rd     := Mux(decodeRdEn, inst(11, 7), 0.U)
   io.output.bits.aluBundle.aluOp := decodeAluOpcode
-  io.output.bits.ctrlSigs.ebreak := isEbreak(decodeOpcode)
+  io.output.bits.ctrlSigs.ebreak := decodeOpcode === decoderParams.ebreakOpcode
 
   dontTouch(decodeResult)
   dontTouch(decodeOpcode)
   dontTouch(decodeAluOpcode)
-  assert(!isEbreak(inst) || isAddi(decodeOpcode), "Invalid instruction")
+  assert(instValid, "Invalid instruction")
 }

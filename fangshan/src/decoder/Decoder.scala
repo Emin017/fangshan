@@ -44,6 +44,50 @@ object FangShandecodeParameter {
   def pauseOpcode:    BitPat = BitPat("b00100011")
   def ecallOpcode:    BitPat = BitPat("b00100100")
   def ebreakOpcode:   BitPat = BitPat("b00100101")
+
+  private def opcodeSet: Set[BitPat] = Set(
+    luiOpcode,
+    auipcOpcode,
+    jalOpcode,
+    jalrOpcode,
+    beqOpcode,
+    bneOpcode,
+    bltOpcode,
+    bgeOpcode,
+    bltuOpcode,
+    bgeuOpcode,
+    lbOpcode,
+    lhOpcode,
+    lwOpcode,
+    lbuOpcode,
+    lhuOpcode,
+    sbOpcode,
+    shOpcode,
+    swOpcode,
+    addiOpcode,
+    sltiOpcode,
+    srliOpcode,
+    sraiOpcode,
+    addOpcode,
+    subOpcode,
+    sllOpcode,
+    sltOpcode,
+    sltuOpcode,
+    xorOpcode,
+    srlOpcode,
+    sraOpcode,
+    orOpcode,
+    andOpcode,
+    fenceOpcode,
+    fenceTsoOpcode,
+    pauseOpcode,
+    ecallOpcode,
+    ebreakOpcode
+  )
+
+  def isInOpcodeSet(opcode: UInt): Bool = {
+    opcodeSet.map(op => op === opcode).reduce(_ || _)
+  }
 }
 
 case class FangShanDecodePattern(inst: Instruction) extends DecodePattern {
