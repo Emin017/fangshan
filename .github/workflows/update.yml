@@ -47,7 +47,8 @@ jobs:
                 --body "Automatically update flake.lock, $(date +'%Y-%m-%d %H:%M:%S')" \
                 --base main \
                 --head "$BRANCH_NAME" \
-                --label "dependencies" "github-actions" \
+                --label "dependencies" \
+                --label "github-actions" \
                 --repo "${{ github.repository }}"
               echo "PR created!"
             fi
