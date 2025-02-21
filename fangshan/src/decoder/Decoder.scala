@@ -45,6 +45,10 @@ object FangShandecodeParameter {
   def ecallOpcode:    BitPat = BitPat("b00100100")
   def ebreakOpcode:   BitPat = BitPat("b00100101")
 
+  /** opcodeSet, set of opcodes
+    * @return
+    *   Set[BitPat]
+    */
   private def opcodeSet: Set[BitPat] = Set(
     luiOpcode,
     auipcOpcode,
@@ -85,15 +89,27 @@ object FangShandecodeParameter {
     ebreakOpcode
   )
 
+  /** isInOpcodeSet, check if the opcode is in the opcode set
+    * @param opcode
+    *   UInt
+    * @return
+    *   Bool
+    */
   def isInOpcodeSet(opcode: UInt): Bool = {
     opcodeSet.map(op => op === opcode).reduce(_ || _)
   }
 }
 
+/** FangShanDecodePattern, which is used to define the decode pattern of the FangShan
+  * @param inst
+  *   instruction
+  */
 case class FangShanDecodePattern(inst: Instruction) extends DecodePattern {
   override def bitPat: BitPat = BitPat("b" + inst.encoding.toString)
 }
 
+/** Opcode, which is used to define the opcode decode field
+  */
 object Opcode extends DecodeField[FangShanDecodePattern, UInt] {
   def name: String = "opcode"
 
@@ -126,6 +142,8 @@ object Opcode extends DecodeField[FangShanDecodePattern, UInt] {
   }
 }
 
+/** ImmType, which is used to define the immediate type decode field
+  */
 object ImmType extends DecodeField[FangShanDecodePattern, UInt] {
   def name: String = "immType"
 
@@ -150,6 +168,8 @@ object ImmType extends DecodeField[FangShanDecodePattern, UInt] {
   }
 }
 
+/** AluOpcode, which is used to define the ALU opcode decode field
+  */
 object AluOpcode extends DecodeField[FangShanDecodePattern, UInt] {
   def name: String = "aluOpcode"
 
@@ -161,6 +181,8 @@ object AluOpcode extends DecodeField[FangShanDecodePattern, UInt] {
   }
 }
 
+/** Rs1En, which is used to define the rs1 enable decode field
+  */
 object Rs1En extends BoolDecodeField[FangShanDecodePattern] {
   def name: String = "rs1En"
 
@@ -179,6 +201,8 @@ object Rs1En extends BoolDecodeField[FangShanDecodePattern] {
   }
 }
 
+/** Rs2En, which is used to define the rs2 enable decode field
+  */
 object Rs2En extends BoolDecodeField[FangShanDecodePattern] {
   def name: String = "rs2En"
 
@@ -197,6 +221,8 @@ object Rs2En extends BoolDecodeField[FangShanDecodePattern] {
   }
 }
 
+/** RdEn, which is used to define the rd enable decode field
+  */
 object RdEn extends BoolDecodeField[FangShanDecodePattern] {
   def name: String = "rdEn"
 
@@ -230,9 +256,15 @@ object Decoder {
   final def decode: UInt => DecodeBundle = decodeTable.decode
   final def bundle: DecodeBundle         = decodeTable.bundle
 
+  /** allInstructions, all instructions
+    * @return
+    *   Seq[Instruction]
+    */
   private val allInstructions: Seq[Instruction] = {
+    // get all instructions from rvdecoderdb
     org.chipsalliance.rvdecoderdb
       .instructions(org.chipsalliance.rvdecoderdb.extractResource(getClass.getClassLoader))
+      // filter out instructions that are not rv32i
       .filter { instruction =>
         instruction.instructionSet.name match {
           case "rv_i"   => true
@@ -240,6 +272,7 @@ object Decoder {
           case _        => false
         }
       }
+      // filter out instructions that are pseudo instructions
       .filter(_.pseudoFrom.isEmpty)
   }.toSeq
 }
