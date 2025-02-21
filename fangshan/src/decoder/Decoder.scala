@@ -4,6 +4,47 @@ import chisel3._
 import chisel3.util.BitPat
 import chisel3.util.experimental.decode.{BoolDecodeField, DecodeBundle, DecodeField, DecodePattern, DecodeTable}
 import org.chipsalliance.rvdecoderdb.Instruction
+import fangshan.rtl.decoder.{FangShandecodeParameter => params}
+
+object FangShandecodeParameter {
+  def luiOpcode:      BitPat = BitPat("b00000001")
+  def auipcOpcode:    BitPat = BitPat("b00000010")
+  def jalOpcode:      BitPat = BitPat("b00000011")
+  def jalrOpcode:     BitPat = BitPat("b00000100")
+  def beqOpcode:      BitPat = BitPat("b00000101")
+  def bneOpcode:      BitPat = BitPat("b00000110")
+  def bltOpcode:      BitPat = BitPat("b00000111")
+  def bgeOpcode:      BitPat = BitPat("b00001000")
+  def bltuOpcode:     BitPat = BitPat("b00001001")
+  def bgeuOpcode:     BitPat = BitPat("b00001010")
+  def lbOpcode:       BitPat = BitPat("b00001011")
+  def lhOpcode:       BitPat = BitPat("b00001100")
+  def lwOpcode:       BitPat = BitPat("b00001101")
+  def lbuOpcode:      BitPat = BitPat("b00001110")
+  def lhuOpcode:      BitPat = BitPat("b00001111")
+  def sbOpcode:       BitPat = BitPat("b00010000")
+  def shOpcode:       BitPat = BitPat("b00010001")
+  def swOpcode:       BitPat = BitPat("b00010010")
+  def addiOpcode:     BitPat = BitPat("b00010011")
+  def sltiOpcode:     BitPat = BitPat("b00010100")
+  def srliOpcode:     BitPat = BitPat("b00010101")
+  def sraiOpcode:     BitPat = BitPat("b00010110")
+  def addOpcode:      BitPat = BitPat("b00010111")
+  def subOpcode:      BitPat = BitPat("b00011000")
+  def sllOpcode:      BitPat = BitPat("b00011001")
+  def sltOpcode:      BitPat = BitPat("b00011010")
+  def sltuOpcode:     BitPat = BitPat("b00011011")
+  def xorOpcode:      BitPat = BitPat("b00011100")
+  def srlOpcode:      BitPat = BitPat("b00011101")
+  def sraOpcode:      BitPat = BitPat("b00011110")
+  def orOpcode:       BitPat = BitPat("b00011111")
+  def andOpcode:      BitPat = BitPat("b00100000")
+  def fenceOpcode:    BitPat = BitPat("b00100001")
+  def fenceTsoOpcode: BitPat = BitPat("b00100010")
+  def pauseOpcode:    BitPat = BitPat("b00100011")
+  def ecallOpcode:    BitPat = BitPat("b00100100")
+  def ebreakOpcode:   BitPat = BitPat("b00100101")
+}
 
 case class FangShanDecodePattern(inst: Instruction) extends DecodePattern {
   override def bitPat: BitPat = BitPat("b" + inst.encoding.toString)
@@ -15,41 +56,64 @@ object Opcode extends DecodeField[FangShanDecodePattern, UInt] {
   override def chiselType: UInt = UInt(8.W)
 
   def genTable(i: FangShanDecodePattern): BitPat = i.inst.name match {
-    case "addi" => BitPat("b00000001")
-    case "slli" => BitPat("b00000010")
-    case "srli" => BitPat("b00000011")
-    case "srai" => BitPat("b00000100")
-    case "andi" => BitPat("b00000101")
-    case "ori"  => BitPat("b00000110")
-    case "xori" => BitPat("b00000111")
-    case _      => {
+    case "lui"    => params.luiOpcode
+    case "auipc"  => params.auipcOpcode
+    case "jal"    => params.jalOpcode
+    case "jalr"   => params.jalrOpcode
+    case "beq"    => params.beqOpcode
+    case "bne"    => params.bneOpcode
+    case "blt"    => params.bltOpcode
+    case "bge"    => params.bgeOpcode
+    case "bltu"   => params.bltuOpcode
+    case "bgeu"   => params.bgeuOpcode
+    case "lb"     => params.lbOpcode
+    case "lh"     => params.lhOpcode
+    case "lw"     => params.lwOpcode
+    case "lbu"    => params.lbuOpcode
+    case "lhu"    => params.lhuOpcode
+    case "sb"     => params.sbOpcode
+    case "sh"     => params.shOpcode
+    case "sw"     => params.swOpcode
+    case "addi"   => params.addiOpcode
+    case "ebreak" => params.ebreakOpcode
+    case _        =>
       println(s"Unknown instruction: ${i.inst}")
       BitPat("b00000000")
-    }
   }
 }
 
 object ImmType extends DecodeField[FangShanDecodePattern, UInt] {
-  def name: String = "imm_type"
+  def name: String = "immType"
 
-  override def chiselType: UInt = UInt(7.W)
+  override def chiselType: UInt = UInt(3.W)
 
   def genTable(i: FangShanDecodePattern): BitPat = {
     val immType = i.inst.args
       .map(_.name match {
-        case "imm12"                 => BitPat("b0000001")
-        case "imm12hi" | "imm12lo"   => BitPat("b0000010")
-        case "bimm12hi" | "bimm12lo" => BitPat("b0000011")
-        case "imm20"                 => BitPat("b0000100")
-        case "jimm20"                => BitPat("b0000101")
-        case "shamtd"                => BitPat("b0000110")
-        case "shamtw"                => BitPat("b0000111")
-        case _                       => BitPat("b???????")
+        case "imm12"                 => BitPat("b001")
+        case "imm12hi" | "imm12lo"   => BitPat("b010")
+        case "bimm12hi" | "bimm12lo" => BitPat("b011")
+        case "imm20"                 => BitPat("b100")
+        case "jimm20"                => BitPat("b101")
+        case "shamtd"                => BitPat("b110")
+        case "shamtw"                => BitPat("b111")
+        case _                       => BitPat("b???")
       })
-      .filterNot(_ == BitPat("b???????"))
+      .filterNot(_ == BitPat("b???"))
       .headOption
-      .getOrElse(BitPat("b???????"))
+      .getOrElse(BitPat("b???"))
     immType
+  }
+}
+
+object AluOpcode extends DecodeField[FangShanDecodePattern, UInt] {
+  def name: String = "aluOpcode"
+
+  override def chiselType: UInt = UInt(3.W)
+
+  def genTable(i: FangShanDecodePattern): BitPat = i.inst.name match {
+    case "addi" => BitPat("b001")
+    case _      => BitPat("b???")
   }
 }
 
@@ -109,9 +173,9 @@ object RdEn extends BoolDecodeField[FangShanDecodePattern] {
 
 object Decoder {
   private def allDecodeField:   Seq[DecodeField[FangShanDecodePattern, _ >: Bool <: UInt]] =
-    Seq(Opcode, ImmType, Rs1En, Rs2En, RdEn)
+    Seq(Opcode, ImmType, AluOpcode, Rs1En, Rs2En, RdEn)
   private def allDecodePattern: Seq[FangShanDecodePattern]                                 =
-    allInstructions.map(FangShanDecodePattern(_)).toSeq.sortBy(_.inst.name)
+    allInstructions.map(FangShanDecodePattern(_)).sortBy(_.inst.name)
 
   private def decodeTable: DecodeTable[FangShanDecodePattern] = {
     val table = new DecodeTable(allDecodePattern, allDecodeField)
