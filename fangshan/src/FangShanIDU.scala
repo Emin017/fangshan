@@ -80,14 +80,14 @@ class FangShanIDU(val parameter: FangShanParameter)
   val decodeOpcode:    UInt         = decodeResult(Opcode)
   val decodeAluOpcode: UInt         = decodeResult(AluOpcode)
 
-  val instValid: Bool      = isEbreak(inst) || isAddi(decodeOpcode)
+  val instValid: Bool = isEbreak(decodeOpcode) || isAddi(decodeOpcode)
 
   io.output.valid                := io.input.valid && instValid
   io.output.bits.aluBundle.rs1   := Mux(decodeRs1En, inst(19, 15), 0.U)
   io.output.bits.aluBundle.rs2   := Mux(decodeRs2En, inst(24, 20), immI(inst))
   io.output.bits.ctrlSigs.rd     := Mux(decodeRdEn, inst(11, 7), 0.U)
   io.output.bits.aluBundle.aluOp := decodeAluOpcode
-  io.output.bits.ctrlSigs.ebreak := isEbreak(inst)
+  io.output.bits.ctrlSigs.ebreak := isEbreak(decodeOpcode)
 
   dontTouch(decodeResult)
   dontTouch(decodeOpcode)
