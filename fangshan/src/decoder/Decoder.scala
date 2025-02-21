@@ -4,9 +4,10 @@ import chisel3._
 import chisel3.util.BitPat
 import chisel3.util.experimental.decode.{BoolDecodeField, DecodeBundle, DecodeField, DecodePattern, DecodeTable}
 import org.chipsalliance.rvdecoderdb.Instruction
-import fangshan.rtl.decoder.{FangShandecodeParameter => params}
+import fangshan.rtl.decoder.{FangShanDecodeParameter => params}
 
-object FangShandecodeParameter {
+object FangShanDecodeParameter {
+  def noneOpcode:     BitPat = BitPat("b00000000")
   def luiOpcode:      BitPat = BitPat("b00000001")
   def auipcOpcode:    BitPat = BitPat("b00000010")
   def jalOpcode:      BitPat = BitPat("b00000011")
@@ -136,9 +137,7 @@ object Opcode extends DecodeField[FangShanDecodePattern, UInt] {
     case "sw"     => params.swOpcode
     case "addi"   => params.addiOpcode
     case "ebreak" => params.ebreakOpcode
-    case _        =>
-      println(s"Unknown instruction: ${i.inst}")
-      BitPat("b00000000")
+    case _        => params.noneOpcode
   }
 }
 
@@ -247,11 +246,7 @@ object Decoder {
   private def allDecodePattern: Seq[FangShanDecodePattern]                                 =
     allInstructions.map(FangShanDecodePattern(_)).sortBy(_.inst.name)
 
-  private def decodeTable: DecodeTable[FangShanDecodePattern] = {
-    val table = new DecodeTable(allDecodePattern, allDecodeField)
-    println(table.table)
-    table
-  }
+  private def decodeTable: DecodeTable[FangShanDecodePattern] = new DecodeTable(allDecodePattern, allDecodeField)
 
   final def decode: UInt => DecodeBundle = decodeTable.decode
   final def bundle: DecodeBundle         = decodeTable.bundle

@@ -62,7 +62,7 @@ class FangShanIDU(val parameter: FangShanParameter)
   override protected def implicitClock: Clock = io.clock
   override protected def implicitReset: Reset = io.reset
 
-  import fangshan.rtl.decoder.{FangShandecodeParameter => decoderParams}
+  import fangshan.rtl.decoder.{FangShanDecodeParameter => decoderParams}
 
   def signEXT(imm: UInt) = Cat(Fill(20, imm(11)), imm)
 
