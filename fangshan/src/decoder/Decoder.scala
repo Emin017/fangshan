@@ -186,17 +186,11 @@ object Rs1En extends BoolDecodeField[FangShanDecodePattern] {
   def name: String = "rs1En"
 
   override def genTable(i: FangShanDecodePattern): BitPat = {
-    val rs1En =
-      if (
-        i.inst.args
-          .map(_.name)
-          .contains("rs1")
-      ) {
-        y
-      } else {
-        n
-      }
-    rs1En
+    if (i.inst.args.exists(_.name == "rs1")) {
+      y
+    } else {
+      n
+    }
   }
 }
 
@@ -206,17 +200,11 @@ object Rs2En extends BoolDecodeField[FangShanDecodePattern] {
   def name: String = "rs2En"
 
   override def genTable(i: FangShanDecodePattern): BitPat = {
-    val rs2En =
-      if (
-        i.inst.args
-          .map(_.name)
-          .contains("rs2")
-      ) {
-        y
-      } else {
-        n
-      }
-    rs2En
+    if (i.inst.args.exists(_.name == "rs2")) {
+      y
+    } else {
+      n
+    }
   }
 }
 
@@ -226,17 +214,11 @@ object RdEn extends BoolDecodeField[FangShanDecodePattern] {
   def name: String = "rdEn"
 
   override def genTable(i: FangShanDecodePattern): BitPat = {
-    val rdEn =
-      if (
-        i.inst.args
-          .map(_.name)
-          .contains("rd")
-      ) {
-        y
-      } else {
-        n
-      }
-    rdEn
+    if (i.inst.args.exists(_.name == "rd")) {
+      y
+    } else {
+      n
+    }
   }
 }
 
