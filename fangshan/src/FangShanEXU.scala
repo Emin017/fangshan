@@ -58,8 +58,7 @@ class FangShanEXU(val parameter: FangShanParameter)
 
   val lsu: FangShanLSU = Module(new FangShanLSU(parameter))
   utils.withClockAndReset(lsu.io.elements, implicitClock, implicitReset)
-  lsu.io.input.valid := true.B
-  lsu.io.input.bits.ctrlInput := lsuDecoderParams.extractLsuOp(io.input.bits.ctrlSigs.lsuOpcode)
+  lsu.io.input.ctrlInput := lsuDecoderParams.extractLsuOp(io.input.bits.ctrlSigs.lsuOpcode)
   utils.dontCarePorts(lsu.axiIn.elements)
   utils.dontCarePorts(lsu.in.elements)
 

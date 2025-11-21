@@ -29,11 +29,11 @@ case class FangShanLSUParams(
 }
 
 class FangShanLSUInterface(parameter: FangShanLSUParams) extends Bundle {
-  val clock:  Clock                       = Input(Clock())
-  val reset:  Bool                        = Input(Bool())
-  val axi:    AXIBundle                   = new AXIBundle(32, 32)
-  val input:  DecoupledIO[LSUInputBundle] = Flipped(DecoupledIO(new LSUInputBundle(parameter.opcodeBits)))
-  val output: Valid[LSUOutputBundle]      = Valid(new LSUOutputBundle)
+  val clock:  Clock                  = Input(Clock())
+  val reset:  Bool                   = Input(Bool())
+  val axi:    AXIBundle              = new AXIBundle(32, 32)
+  val input:  LSUInputBundle         = Flipped(new LSUInputBundle(parameter.opcodeBits))
+  val output: Valid[LSUOutputBundle] = Valid(new LSUOutputBundle)
 }
 
 @instantiable
@@ -44,12 +44,11 @@ class FangShanLSU(val parameter: FangShanParameter)
   override protected def implicitClock: Clock = io.clock
   override protected def implicitReset: Reset = io.reset
 
-  io.input.ready := true.B
   utils.dontCarePorts(io.axi.elements)
 
   val axiIn    = io.axi
-  val in       = io.input.bits
-  val lsuCtrls = io.input.bits.ctrlInput
+  val in       = io.input
+  val lsuCtrls = io.input.ctrlInput
 
   val readEnable:  Bool = lsuCtrls.enableReadWrite
   val writeEnable: Bool = lsuCtrls.enableReadWrite
