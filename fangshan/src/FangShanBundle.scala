@@ -5,6 +5,7 @@ package fangshan.rtl
 
 import chisel3._
 import chisel3.util.experimental.decode.DecodeBundle
+import fangshan.rtl.axi.AXIBundle
 
 /** Memory read interface, includes [[address]] */
 class MemReadIO(width: Int) extends Bundle {
@@ -33,17 +34,18 @@ class IFUOutputBundle(width: Int) extends Bundle {
 
 /** CtrlSigBundle, which is used to define the control signals, include [[rd]]
   */
-class CtrlSigBundle extends Bundle {
-  val rd:     UInt = UInt(4.W)
-  val ebreak: Bool = Bool()
+class CtrlSigBundle(lsOpBits: Int) extends Bundle {
+  val rd:        UInt = UInt(4.W)
+  val ebreak:    Bool = Bool()
+  val lsuOpcode: UInt = UInt(lsOpBits.W)
 }
 
-/** ALUInputBundle, which is used to define the input bundle of the ALU, include [[rs1]], [[rs2]], [[aluOp]]
+/** ALUInputBundle, which is used to define the input bundle of the ALU, include [[rs1]], [[rs2]], [[opcode]]
   */
 class ALUInputBundle extends Bundle {
-  val rs1:   UInt = UInt(32.W)
-  val rs2:   UInt = UInt(32.W)
-  val aluOp: UInt = UInt(4.W)
+  val rs1:    UInt = UInt(32.W)
+  val rs2:    UInt = UInt(32.W)
+  val opcode: UInt = UInt(4.W)
 }
 
 /** IDUInputBundle, which is used to define the input bundle of the IDU, include [[inst]]
@@ -54,16 +56,27 @@ class IDUInputBundle(width: Int) extends Bundle {
 
 /** IDUOutputBundle, which is used to define the output bundle of the IDU, include [[aluBundle]] and [[ctrlSigs]]
   */
-class IDUOutputBundle extends Bundle {
+class IDUOutputBundle(lsOpBits: Int) extends Bundle {
   val aluBundle = new ALUInputBundle
-  val ctrlSigs  = new CtrlSigBundle
+  val ctrlSigs  = new CtrlSigBundle(lsOpBits)
+}
+
+class LSUInputBundle(opcodeBits: Int) extends Bundle {
+  import fangshan.rtl.decoder.FangShanDecodeParameter.LSUOpcode._
+  val ctrlInput = new lsuExtractBundle
+  val address   = UInt(32.W)
+  val dataInput = UInt(32.W)
+}
+
+class LSUOutputBundle extends Bundle {
+  val dataOut: UInt = UInt(32.W)
 }
 
 /** EXUInputBundle, which is used to define the input bundle of the EXU, include [[aluBundle]] and [[ctrlSigs]]
   */
-class EXUInputBundle extends Bundle {
+class EXUInputBundle(lsuOpBits: Int) extends Bundle {
   val aluBundle = new ALUInputBundle
-  val ctrlSigs  = new CtrlSigBundle
+  val ctrlSigs  = new CtrlSigBundle(lsuOpBits)
 }
 
 /** EXUOutputBundle, which is used to define the output bundle of the EXU, include [[update]], [[result]], [[rd]]

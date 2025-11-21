@@ -26,15 +26,23 @@ case class FangShanParameter(
 
   def wmask: Int = 8
 
+  object AXIId {
+    val IFU: Int = 1
+    val LSU: Int = 2
+  }
+  import fangshan.rtl.decoder.FangShanDecodeParameter.LSUOpcode.lsuOpcodeBits
+
   def memParams: FangShanMemoryParams = FangShanMemoryParams(width, wmask)
 
   def regParams: FangShanRegistersParams = FangShanRegistersParams(regNum, width)
 
   def ifuParams: FangShanIFUParams = FangShanIFUParams(regNum, width)
 
-  def iduParams: FangShanIDUParams = FangShanIDUParams(regNum, width)
+  def iduParams: FangShanIDUParams = FangShanIDUParams(regNum, width, lsuOpcodeBits)
 
-  def exuParams: FangShanEXUParams = FangShanEXUParams(regNum, width)
+  def exuParams: FangShanEXUParams = FangShanEXUParams(regNum, width, lsuOpcodeBits)
+
+  def lsuParams: FangShanLSUParams = FangShanLSUParams(width, wmask, lsuOpcodeBits, AXIId.LSU)
 }
 
 /** Verification IO of [[FangShan]] */

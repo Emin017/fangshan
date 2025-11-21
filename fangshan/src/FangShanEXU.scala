@@ -5,7 +5,9 @@ package fangshan.rtl
 
 import chisel3._
 import chisel3.experimental.hierarchy.instantiable
-import chisel3.util.{log2Ceil, DecoupledIO, Valid}
+import chisel3.util.{DecoupledIO, Valid, log2Ceil}
+import fangshan.rtl.decoder.FangShanDecodeParameter.{LSUOpcode => lsuDecoderParams}
+import fangshan.utils.{FangShanUtils => utils}
 
 /** EXUParams, which is used to define the parameters of the EXU
   * @param regNum
@@ -15,7 +17,8 @@ import chisel3.util.{log2Ceil, DecoupledIO, Valid}
   */
 case class FangShanEXUParams(
   regNum: Int,
-  width: Int) {
+  width:  Int,
+  lsOpBits: Int) {
 
   /** regNumWidth, width of the number of registers
     * @return
@@ -33,7 +36,7 @@ case class FangShanEXUParams(
     * @return
     *   EXUInputBundle
     */
-  def inputBundle: EXUInputBundle = new EXUInputBundle
+  def inputBundle: EXUInputBundle = new EXUInputBundle(lsOpBits)
 
   /** outputBundle, output bundle of the EXU
     * @return
@@ -64,6 +67,13 @@ class FangShanEXU(val parameter: FangShanParameter)
     with ImplicitReset {
   override protected def implicitClock: Clock = io.clock
   override protected def implicitReset: Reset = io.reset
+
+  val lsu: FangShanLSU = Module(new FangShanLSU(parameter))
+  utils.withClockAndReset(lsu.io.elements, implicitClock, implicitReset)
+  lsu.io.input.valid := true.B
+  lsu.io.input.bits.ctrlInput := lsuDecoderParams.extractLsuOp(io.input.bits.ctrlSigs.lsuOpcode)
+  utils.dontCarePorts(lsu.axiIn.elements)
+  utils.dontCarePorts(lsu.in.elements)
 
   val oldRes: UInt = RegInit(0.U(parameter.width.W))
   val res:    UInt = WireInit(0.U(parameter.width.W))

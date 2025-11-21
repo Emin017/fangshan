@@ -17,7 +17,8 @@ import fangshan.rtl.decoder._
   */
 case class FangShanIDUParams(
   regNum: Int,
-  width: Int) {
+  width:  Int,
+  lsuOpBits: Int) {
   def regNumWidth: Int = log2Ceil(regNum)
 
   /** regWidth, width of registers
@@ -36,7 +37,7 @@ case class FangShanIDUParams(
     * @return
     *   IDUOutputBundle
     */
-  def outputBundle: IDUOutputBundle = new IDUOutputBundle
+  def outputBundle: IDUOutputBundle = new IDUOutputBundle(lsuOpBits)
 }
 
 /** IDUInterface, Instruction Decode Unit Interface
@@ -75,15 +76,17 @@ class FangShanIDU(val parameter: FangShanParameter)
   val decodeRdEn:      Bool         = decodeResult(RdEn)
   val decodeOpcode:    UInt         = decodeResult(Opcode)
   val decodeAluOpcode: UInt         = decodeResult(AluOpcode)
+  val decodeLsuOpcode: UInt         = decodeResult(LsuOpcode)
 
   val instValid: Bool = decoderParams.isInOpcodeSet(decodeOpcode)
 
-  io.output.valid                := io.input.valid && instValid
-  io.output.bits.aluBundle.rs1   := Mux(decodeRs1En, inst(19, 15), 0.U)
-  io.output.bits.aluBundle.rs2   := Mux(decodeRs2En, inst(24, 20), immI(inst))
-  io.output.bits.ctrlSigs.rd     := Mux(decodeRdEn, inst(11, 7), 0.U)
-  io.output.bits.aluBundle.aluOp := decodeAluOpcode
-  io.output.bits.ctrlSigs.ebreak := decodeOpcode === decoderParams.ebreakOpcode
+  io.output.valid                   := io.input.valid && instValid
+  io.output.bits.aluBundle.rs1      := Mux(decodeRs1En, inst(19, 15), 0.U)
+  io.output.bits.aluBundle.rs2      := Mux(decodeRs2En, inst(24, 20), immI(inst))
+  io.output.bits.ctrlSigs.rd        := Mux(decodeRdEn, inst(11, 7), 0.U)
+  io.output.bits.aluBundle.opcode   := decodeAluOpcode
+  io.output.bits.ctrlSigs.lsuOpcode := decodeLsuOpcode
+  io.output.bits.ctrlSigs.ebreak    := decodeOpcode === decoderParams.ebreakOpcode
 
   dontTouch(decodeResult)
   dontTouch(decodeOpcode)
