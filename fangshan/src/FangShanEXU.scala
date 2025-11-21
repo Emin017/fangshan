@@ -5,7 +5,7 @@ package fangshan.rtl
 
 import chisel3._
 import chisel3.experimental.hierarchy.instantiable
-import chisel3.util.{DecoupledIO, Valid, log2Ceil}
+import chisel3.util.{log2Ceil, DecoupledIO, Valid}
 import fangshan.rtl.decoder.FangShanDecodeParameter.{LSUOpcode => lsuDecoderParams}
 import fangshan.utils.{FangShanUtils => utils}
 
@@ -58,27 +58,19 @@ class FangShanEXU(val parameter: FangShanParameter)
 
   val lsu: FangShanLSU = Module(new FangShanLSU(parameter))
   utils.withClockAndReset(lsu.io.elements, implicitClock, implicitReset)
-  lsu.io.input.ctrlInput := lsuDecoderParams.extractLsuOp(io.input.bits.ctrlSigs.lsuOpcode)
   utils.dontCarePorts(lsu.axiIn.elements)
   utils.dontCarePorts(lsu.in.elements)
+  lsu.io.input.ctrlInput := lsuDecoderParams.extractLsuOp(io.input.bits.ctrlSigs.lsuOpcode)
 
-  val oldRes: UInt = RegInit(0.U(parameter.width.W))
-  val res:    UInt = WireInit(0.U(parameter.width.W))
+  val res: UInt = WireInit(0.U(parameter.width.W))
   res := io.input.bits.aluBundle.rs1 + io.input.bits.aluBundle.rs2
 
-  val diffRes: Bool = oldRes =/= res
-  val ebreak:  Bool = io.input.bits.ctrlSigs.ebreak
-  when(diffRes) {
-    oldRes          := res
-    io.input.ready  := true.B
-    io.output.valid := true.B
-  }.otherwise {
-    io.input.ready  := false.B
-    io.output.valid := false.B
-  }
-  io.output.bits.update := Mux(io.input.valid && (diffRes || !ebreak), true.B, false.B)
-  dontTouch(ebreak)
-  dontTouch(res)
+  val ebreak: Bool = io.input.bits.ctrlSigs.ebreak
+  io.input.ready        := true.B
+  io.output.valid       := true.B
+  io.output.bits.update := true.B
   io.output.bits.result := res
   io.output.bits.rd     := io.input.bits.ctrlSigs.rd
+  dontTouch(ebreak)
+  dontTouch(res)
 }
