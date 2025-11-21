@@ -40,8 +40,8 @@ class FangShanMemoryInterface(parameter: FangShanMemoryParams) extends Bundle {
 }
 
 /** Memory module, include read and write logic, for now we use DPI to call the memory read function */
-class FangShanMemory(parameter: FangShanParameter) extends RawModule {
-  val io: FangShanMemoryInterface = IO(new FangShanMemoryInterface(parameter.memParams))
+class FangShanMemory(parameter: FangShanMemoryParams) extends RawModule {
+  val io: FangShanMemoryInterface = IO(new FangShanMemoryInterface(parameter))
 
   io.dataOut := RawUnclockedNonVoidFunctionCall(
     "mem_read",

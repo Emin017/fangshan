@@ -1,9 +1,9 @@
 package fangshan.rtl.decoder
 
 import chisel3._
-import chisel3.util.BitPat
+import chisel3.util.{BitPat, Cat}
 import chisel3.util.experimental.decode.{BoolDecodeField, DecodeBundle, DecodeField, DecodePattern, DecodeTable}
-import org.chipsalliance.rvdecoderdb.Instruction
+import org.chipsalliance.rvdecoderdb.{extractResource, Instruction}
 import fangshan.rtl.decoder.{FangShanDecodeParameter => params}
 
 object FangShanDecodeParameter {
@@ -99,6 +99,66 @@ object FangShanDecodeParameter {
   def isInOpcodeSet(opcode: UInt): Bool = {
     opcodeSet.map(op => op === opcode).reduce(_ || _)
   }
+
+  object LSUOpcode {
+    private def isReadOrWrite:   BitPat = BitPat("b1")
+    private def notReadAndWrite: BitPat = BitPat("b0")
+    private def enableBits:      Int    = isReadOrWrite.width
+
+    private def isLoad:          BitPat = BitPat("b0")
+    private def isStore:         BitPat = BitPat("b1")
+    private def isLoadStoreBits: Int    = isStore.width
+
+    private def byteMask:       BitPat = BitPat("b00000001")
+    private def halfMask:       BitPat = BitPat("b00000011")
+    private def wordMask:       BitPat = BitPat("b00001111")
+    private def doubleWordMask: BitPat = BitPat("b11111111")
+    private def maskBits:       Int    = doubleWordMask.width
+
+    private def oneByte:   BitPat = BitPat("b00")
+    private def twoByte:   BitPat = BitPat("b01")
+    private def fourByte:  BitPat = BitPat("b10")
+    private def eightByte: BitPat = BitPat("b11")
+    private def sizeBits:  Int    = eightByte.width
+
+    private def isSigned:   BitPat = BitPat("b0")
+    private def isUnsigned: BitPat = BitPat("b1")
+    private def signBits:   Int    = isSigned.width
+
+    // LSU Decode Patterns
+    // lsu opcode format: [isSigned(1)] [size(2)] [mask(8)] [isLoadStore(1)] [enable(1)]
+    // Load opcodes
+    def lbOpcode:  BitPat = isSigned ## oneByte ## byteMask ## isLoad ## isReadOrWrite
+    def lhOpcode:  BitPat = isSigned ## twoByte ## halfMask ## isLoad ## isReadOrWrite
+    def lwOpcode:  BitPat = isSigned ## fourByte ## wordMask ## isLoad ## isReadOrWrite
+    def lbuOpcode: BitPat = isUnsigned ## oneByte ## byteMask ## isLoad ## isReadOrWrite
+    def lhuOpcode: BitPat = isUnsigned ## twoByte ## halfMask ## isLoad ## isReadOrWrite
+
+    // Store opcodes
+    def sbOpcode: BitPat = isSigned ## oneByte ## byteMask ## isStore ## isReadOrWrite
+    def shOpcode: BitPat = isSigned ## twoByte ## halfMask ## isStore ## isReadOrWrite
+    def swOpcode: BitPat = isSigned ## fourByte ## wordMask ## isStore ## isReadOrWrite
+
+    def nonOpcode: BitPat = BitPat("b?????????????")
+
+    def lsuOpcodeBits: Int = signBits + sizeBits + maskBits + isLoadStoreBits + enableBits // 1 + 2 + 8 + 1 + 1 = 13
+
+    final class LSUExtractBundle extends Bundle {
+      val enableReadWrite: Bool = Bool()
+      val isLoadStore:     UInt = UInt(isLoadStoreBits.W)
+      val writeMask:       UInt = UInt(maskBits.W)
+      val size:            UInt = UInt(sizeBits.W)
+      val isSigned:        UInt = UInt(signBits.W)
+    }
+
+    def extractBundle: LSUExtractBundle = new LSUExtractBundle
+
+    def extractLsuOp(opcode: UInt): LSUExtractBundle = {
+      require(opcode.getWidth == lsuOpcodeBits, s"opcode width must be $lsuOpcodeBits")
+      val extractedBundle = new LSUExtractBundle
+      opcode.asTypeOf(extractedBundle)
+    }
+  }
 }
 
 /** FangShanDecodePattern, which is used to define the decode pattern of the FangShan
@@ -180,6 +240,24 @@ object AluOpcode extends DecodeField[FangShanDecodePattern, UInt] {
   }
 }
 
+object LsuOpcode extends DecodeField[FangShanDecodePattern, UInt] {
+  def name: String = "loadStoreOpcode"
+
+  override def chiselType: UInt = UInt(params.LSUOpcode.lsuOpcodeBits.W)
+
+  def genTable(i: FangShanDecodePattern): BitPat = i.inst.name match {
+    case "lb"  => params.LSUOpcode.lbOpcode
+    case "lh"  => params.LSUOpcode.lhOpcode
+    case "lw"  => params.LSUOpcode.lwOpcode
+    case "lbu" => params.LSUOpcode.lbuOpcode
+    case "lhu" => params.LSUOpcode.lhuOpcode
+    case "sb"  => params.LSUOpcode.sbOpcode
+    case "sh"  => params.LSUOpcode.shOpcode
+    case "sw"  => params.LSUOpcode.swOpcode
+    case _     => params.LSUOpcode.nonOpcode
+  }
+}
+
 /** Rs1En, which is used to define the rs1 enable decode field
   */
 object Rs1En extends BoolDecodeField[FangShanDecodePattern] {
@@ -224,7 +302,7 @@ object RdEn extends BoolDecodeField[FangShanDecodePattern] {
 
 object Decoder {
   private def allDecodeField:   Seq[DecodeField[FangShanDecodePattern, _ >: Bool <: UInt]] =
-    Seq(Opcode, ImmType, AluOpcode, Rs1En, Rs2En, RdEn)
+    Seq(Opcode, ImmType, AluOpcode, LsuOpcode, Rs1En, Rs2En, RdEn)
   private def allDecodePattern: Seq[FangShanDecodePattern]                                 =
     allInstructions.map(FangShanDecodePattern(_)).sortBy(_.inst.name)
 

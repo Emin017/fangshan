@@ -11,6 +11,7 @@
 out/
 result*
 fangshan-sim-result/
+test-dir/
 /dependencies/
 target/
 emitOut/

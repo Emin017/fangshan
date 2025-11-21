@@ -47,6 +47,13 @@ trait FangShan extends millbuild.common.FangShanModule with ScalafmtModule {
   def chiselPluginJar = T(Some(chisel.pluginModule.jar()))
   def chiselIvy = None
   def chiselPluginIvy = None
+
+  object test extends ScalaTests with TestModule.ScalaTest {
+    override def ivyDeps = T(super.ivyDeps() ++ Agg(
+      ivy"org.scalatest::scalatest:3.2.19",
+      ivy"org.scalatestplus::scalacheck-1-18:3.2.19.0",
+    ))
+  }
 }
 
 object elaborator extends Elaborator

@@ -17,7 +17,8 @@ import fangshan.rtl.decoder._
   */
 case class FangShanIDUParams(
   regNum: Int,
-  width: Int) {
+  width:  Int,
+  lsuOpBits: Int) {
   def regNumWidth: Int = log2Ceil(regNum)
 
   /** regWidth, width of registers
@@ -25,18 +26,6 @@ case class FangShanIDUParams(
     *   Int
     */
   def regWidth: Int = width
-
-  /** inputBundle, input bundle of the IDU
-    * @return
-    *   IDUInputBundle
-    */
-  def inputBundle: IDUInputBundle = new IDUInputBundle(width)
-
-  /** outputBundle, output bundle of the IDU
-    * @return
-    *   IDUOutputBundle
-    */
-  def outputBundle: IDUOutputBundle = new IDUOutputBundle
 }
 
 /** IDUInterface, Instruction Decode Unit Interface
@@ -46,8 +35,8 @@ case class FangShanIDUParams(
 class FangShanIDUInterface(parameter: FangShanIDUParams) extends Bundle {
   val clock:  Clock                        = Input(Clock())
   val reset:  Reset                        = Input(Bool())
-  val input:  Valid[IDUInputBundle]        = Flipped(Valid(parameter.inputBundle))
-  val output: DecoupledIO[IDUOutputBundle] = DecoupledIO(parameter.outputBundle)
+  val input:  Valid[IDUInputBundle]        = Flipped(Valid(new IDUInputBundle(parameter.width)))
+  val output: DecoupledIO[IDUOutputBundle] = DecoupledIO(new IDUOutputBundle(parameter.lsuOpBits))
 }
 
 /** IDU, Instruction Decode Unit
@@ -55,8 +44,8 @@ class FangShanIDUInterface(parameter: FangShanIDUParams) extends Bundle {
   *   parameters of the IDU
   */
 @instantiable
-class FangShanIDU(val parameter: FangShanParameter)
-    extends FixedIORawModule(new FangShanIDUInterface(parameter.iduParams))
+class FangShanIDU(val parameter: FangShanIDUParams)
+    extends FixedIORawModule(new FangShanIDUInterface(parameter))
     with ImplicitClock
     with ImplicitReset {
   override protected def implicitClock: Clock = io.clock
@@ -75,15 +64,17 @@ class FangShanIDU(val parameter: FangShanParameter)
   val decodeRdEn:      Bool         = decodeResult(RdEn)
   val decodeOpcode:    UInt         = decodeResult(Opcode)
   val decodeAluOpcode: UInt         = decodeResult(AluOpcode)
+  val decodeLsuOpcode: UInt         = decodeResult(LsuOpcode)
 
   val instValid: Bool = decoderParams.isInOpcodeSet(decodeOpcode)
 
-  io.output.valid                := io.input.valid && instValid
-  io.output.bits.aluBundle.rs1   := Mux(decodeRs1En, inst(19, 15), 0.U)
-  io.output.bits.aluBundle.rs2   := Mux(decodeRs2En, inst(24, 20), immI(inst))
-  io.output.bits.ctrlSigs.rd     := Mux(decodeRdEn, inst(11, 7), 0.U)
-  io.output.bits.aluBundle.aluOp := decodeAluOpcode
-  io.output.bits.ctrlSigs.ebreak := decodeOpcode === decoderParams.ebreakOpcode
+  io.output.valid                   := io.input.valid && instValid
+  io.output.bits.aluBundle.rs1      := Mux(decodeRs1En, inst(19, 15), 0.U)
+  io.output.bits.aluBundle.rs2      := Mux(decodeRs2En, inst(24, 20), immI(inst))
+  io.output.bits.ctrlSigs.rd        := Mux(decodeRdEn, inst(11, 7), 0.U)
+  io.output.bits.aluBundle.opcode   := decodeAluOpcode
+  io.output.bits.ctrlSigs.lsuOpcode := decodeLsuOpcode
+  io.output.bits.ctrlSigs.ebreak    := decodeOpcode === decoderParams.ebreakOpcode
 
   dontTouch(decodeResult)
   dontTouch(decodeOpcode)

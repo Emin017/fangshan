@@ -26,15 +26,22 @@ case class FangShanParameter(
 
   def wmask: Int = 8
 
+  object AXIId {
+    val IFU: Int = 1
+    val LSU: Int = 2
+  }
+  import fangshan.rtl.decoder.FangShanDecodeParameter.LSUOpcode.lsuOpcodeBits
+
   def memParams: FangShanMemoryParams = FangShanMemoryParams(width, wmask)
 
   def regParams: FangShanRegistersParams = FangShanRegistersParams(regNum, width)
 
-  def ifuParams: FangShanIFUParams = FangShanIFUParams(regNum, width)
+  def ifuParams: FangShanIFUParams = FangShanIFUParams(regNum, width, memParams)
 
-  def iduParams: FangShanIDUParams = FangShanIDUParams(regNum, width)
+  def iduParams: FangShanIDUParams = FangShanIDUParams(regNum, width, lsuOpcodeBits)
 
-  def exuParams: FangShanEXUParams = FangShanEXUParams(regNum, width)
+  def exuParams: FangShanEXUParams = FangShanEXUParams(regNum, width, wmask, lsuOpcodeBits, AXIId.LSU)
+
 }
 
 /** Verification IO of [[FangShan]] */
@@ -72,10 +79,10 @@ class FangShan(val parameter: FangShanParameter)
   override protected def implicitClock: Clock = io.clock
   override protected def implicitReset: Reset = io.reset
 
-  val ifu:  Instance[FangShanIFU]           = Instantiate(new FangShanIFU(parameter))
-  val idu:  Instance[FangShanIDU]           = Instantiate(new FangShanIDU(parameter))
-  val exu:  Instance[FangShanEXU]           = Instantiate(new FangShanEXU(parameter))
-  val reg:  Instance[FangShanRegistersFile] = Instantiate(new FangShanRegistersFile(parameter))
+  val ifu:  Instance[FangShanIFU]           = Instantiate(new FangShanIFU(parameter.ifuParams))
+  val idu:  Instance[FangShanIDU]           = Instantiate(new FangShanIDU(parameter.iduParams))
+  val exu:  Instance[FangShanEXU]           = Instantiate(new FangShanEXU(parameter.exuParams))
+  val reg:  Instance[FangShanRegistersFile] = Instantiate(new FangShanRegistersFile(parameter.regParams))
   val pc:   UInt                            = RegInit("h80000000".U(parameter.width.W))
   val snpc: UInt                            = WireInit("h80000000".U(parameter.width.W))
   val dnpc: UInt                            = WireInit("h80000000".U(parameter.width.W))

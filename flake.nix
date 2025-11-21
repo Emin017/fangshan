@@ -39,7 +39,6 @@
             rustfmt.enable = true; # rust
             yamlfmt.enable = true; # yaml
             taplo.enable = true; # toml
-            swift-format.enable = true; # swift
           };
         };
       in
@@ -60,8 +59,13 @@
               pkgs.cargo
               pkgs.rustfmt
               pkgs.rust-analyzer
+              pkgs.verilator
             ];
             RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
+            shellHook = ''
+              mill mill.bsp.BSP/install
+              export CHISEL_FIRTOOL_PATH=$CIRCT_INSTALL_PATH/bin
+            '';
           }
           // pkgs.fangshan.tb-dpi-lib.env
           // pkgs.fangshan.fangshan-compiled.env

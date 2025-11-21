@@ -16,14 +16,11 @@ import fangshan.utils.{FangShanUtils => utils}
   */
 case class FangShanIFUParams(
   regNum: Int,
-  width: Int) {
+  width:  Int,
+  memParams: FangShanMemoryParams) {
   def RegNumWidth: Int = log2Ceil(regNum)
 
   def RegWidth: Int = width
-
-  def inputBundle: IFUInputBundle = new IFUInputBundle(width)
-
-  def outputBundle: IFUOutputBundle = new IFUOutputBundle(width)
 }
 
 /** IFUInterface, Instruction Fetch Unit Interface
@@ -33,8 +30,8 @@ case class FangShanIFUParams(
 class FangShanIFUInterface(parameter: FangShanIFUParams) extends Bundle {
   val clock:  Clock                       = Input(Clock())
   val reset:  Reset                       = Input(Bool())
-  val input:  DecoupledIO[IFUInputBundle] = Flipped(DecoupledIO(parameter.inputBundle))
-  val output: Valid[IFUOutputBundle]      = Valid(parameter.outputBundle)
+  val input:  DecoupledIO[IFUInputBundle] = Flipped(DecoupledIO(new IFUInputBundle(parameter.width)))
+  val output: Valid[IFUOutputBundle]      = Valid(new IFUOutputBundle(parameter.width))
 }
 
 /** IFU, Instruction Fetch Unit
@@ -42,8 +39,8 @@ class FangShanIFUInterface(parameter: FangShanIFUParams) extends Bundle {
   *   parameters of the IFU
   */
 @instantiable
-class FangShanIFU(val parameter: FangShanParameter)
-    extends FixedIORawModule(new FangShanIFUInterface(parameter.ifuParams))
+class FangShanIFU(val parameter: FangShanIFUParams)
+    extends FixedIORawModule(new FangShanIFUInterface(parameter))
     with ImplicitClock
     with ImplicitReset {
   override protected def implicitClock: Clock = io.clock
@@ -52,7 +49,7 @@ class FangShanIFU(val parameter: FangShanParameter)
   io.input.ready      := true.B
   io.output.bits.inst := 0.U(parameter.width.W)
 
-  val M: FangShanMemory = Module(new FangShanMemory(parameter))
+  val M: FangShanMemory = Module(new FangShanMemory(parameter.memParams))
 
   utils.withClockAndReset(M.io.elements, implicitClock, implicitReset)
 
@@ -64,10 +61,8 @@ class FangShanIFU(val parameter: FangShanParameter)
   // so we use RegNext to delay the signal.
   M.io.read.valid        := RegNext(io.input.valid)
   // Same as the read.valid above
-  val noReset = RegNext(io.reset)
-  // FIXME: This is a workaround for fetching the first instruction, it should be removed when we add nop instruction.
-  io.output.valid     := (M.io.dataOut =/= 0.U) && io.input.valid && !noReset.asBool
-  io.output.bits.inst := M.io.dataOut
+  io.output.valid        := (M.io.dataOut =/= 0.U) && io.input.valid && !RegNext(io.reset).asBool
+  io.output.bits.inst    := M.io.dataOut
 
   dontTouch(io.output.bits.inst)
   dontTouch(io.input.bits.read)
