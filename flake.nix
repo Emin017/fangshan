@@ -39,7 +39,6 @@
             rustfmt.enable = true; # rust
             yamlfmt.enable = true; # yaml
             taplo.enable = true; # toml
-            swift-format.enable = true; # swift
           };
         };
       in
