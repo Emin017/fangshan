@@ -8,8 +8,8 @@ import fangshan.rtl.axi.AXIBundle
 import fangshan.utils.{FangShanUtils => utils}
 
 case class FangShanLSUParams(
+  xlen:       Int,
   regNum:     Int,
-  width:      Int,
   opcodeBits: Int,
   axiID: Int) {
 
@@ -23,9 +23,9 @@ case class FangShanLSUParams(
     * @return
     *   Int
     */
-  def regWidth: Int = width
+  def regWidth: Int = xlen
 
-  def maskLen: Int = width / 8
+  def maskLen: Int = xlen / 8
 }
 
 class FangShanLSUInterface(parameter: FangShanLSUParams) extends Bundle {
@@ -37,8 +37,8 @@ class FangShanLSUInterface(parameter: FangShanLSUParams) extends Bundle {
 }
 
 @instantiable
-class FangShanLSU(val parameter: FangShanParameter)
-    extends FixedIORawModule(new FangShanLSUInterface(parameter.lsuParams))
+class FangShanLSU(val parameter: FangShanLSUParams)
+    extends FixedIORawModule(new FangShanLSUInterface(parameter))
     with ImplicitClock
     with ImplicitReset {
   override protected def implicitClock: Clock = io.clock
@@ -58,8 +58,8 @@ class FangShanLSU(val parameter: FangShanParameter)
 
   val waddr:    UInt = RegInit(0.U(parameter.xlen.W))
   val wdata:    UInt = WireInit(0.U(parameter.xlen.W))
-  val wstrb:    UInt = WireInit(0.U(parameter.lsuParams.maskLen.W))
-  val wDataSel: UInt = WireInit(0.U(parameter.lsuParams.maskLen.W))
+  val wstrb:    UInt = WireInit(0.U(parameter.maskLen.W))
+  val wDataSel: UInt = WireInit(0.U(parameter.maskLen.W))
   val wvalid:   Bool = RegNext(writeEnable)
   val memOut:   UInt = WireInit(0.U(parameter.xlen.W))
   val rvalid:   Bool = RegNext(readEnable)
@@ -70,7 +70,7 @@ class FangShanLSU(val parameter: FangShanParameter)
   wDataSel := mask
 
   val writeShiftSign: UInt = in.address(1, 0) & "b11".U(2.W)
-  wstrb    := MuxLookup(writeShiftSign, 0.U(parameter.lsuParams.maskLen.W))(
+  wstrb    := MuxLookup(writeShiftSign, 0.U(parameter.maskLen.W))(
     Seq(
       0.U -> wDataSel,
       1.U -> (wDataSel << 1),
@@ -175,8 +175,8 @@ class FangShanLSU(val parameter: FangShanParameter)
   awsizeReg        := Mux(writeEnable, awsize, Mux(aIn.aw.fire, 0.U(3.W), awsizeReg))
   aIn.aw.bits.size := awsizeReg
 
-  val wstrbReg: UInt = RegInit(0.U(parameter.lsuParams.maskLen.W))
-  wstrbReg := Mux(writeEnable, wstrb, Mux(aIn.w.fire, 0.U(parameter.lsuParams.maskLen.W), wstrbReg))
+  val wstrbReg: UInt = RegInit(0.U(parameter.maskLen.W))
+  wstrbReg := Mux(writeEnable, wstrb, Mux(aIn.w.fire, 0.U(parameter.maskLen.W), wstrbReg))
 
   aIn.w.bits.data := 0.U
   aIn.w.bits.strb := 0.U
@@ -200,8 +200,8 @@ class FangShanLSU(val parameter: FangShanParameter)
   aIn.b.ready     := true.B
 
   val bOutValid: Bool =
-    Mux(aIn.b.fire && aIn.b.bits.resp === 0.U && aIn.b.bits.id === parameter.lsuParams.axiID.U, true.B, false.B)
-  val rFinished: Bool = (aIn.r.bits.resp === 0.U) && (aIn.r.bits.id === parameter.lsuParams.axiID.U) && aIn.r.fire
+    Mux(aIn.b.fire && aIn.b.bits.resp === 0.U && aIn.b.bits.id === parameter.axiID.U, true.B, false.B)
+  val rFinished: Bool = (aIn.r.bits.resp === 0.U) && (aIn.r.bits.id === parameter.axiID.U) && aIn.r.fire
   out.valid := rFinished || bOutValid
 
   val readShiftSign: UInt = raddr(1, 0) & "b11".U(2.W)
@@ -215,10 +215,10 @@ class FangShanLSU(val parameter: FangShanParameter)
   )
   dontTouch(readShiftSign)
 
-  aIn.ar.bits.id    := parameter.lsuParams.axiID.U
+  aIn.ar.bits.id    := parameter.axiID.U
   aIn.ar.bits.len   := 0.U
   aIn.ar.bits.burst := 0.U
-  aIn.aw.bits.id    := parameter.lsuParams.axiID.U
+  aIn.aw.bits.id    := parameter.axiID.U
   aIn.aw.bits.len   := 0.U
   aIn.aw.bits.burst := 0.U
 

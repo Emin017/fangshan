@@ -44,8 +44,8 @@ class FangShanIDUInterface(parameter: FangShanIDUParams) extends Bundle {
   *   parameters of the IDU
   */
 @instantiable
-class FangShanIDU(val parameter: FangShanParameter)
-    extends FixedIORawModule(new FangShanIDUInterface(parameter.iduParams))
+class FangShanIDU(val parameter: FangShanIDUParams)
+    extends FixedIORawModule(new FangShanIDUInterface(parameter))
     with ImplicitClock
     with ImplicitReset {
   override protected def implicitClock: Clock = io.clock

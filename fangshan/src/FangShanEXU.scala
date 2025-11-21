@@ -6,6 +6,7 @@ package fangshan.rtl
 import chisel3._
 import chisel3.experimental.hierarchy.instantiable
 import chisel3.util.{log2Ceil, DecoupledIO, Valid}
+import fangshan.rtl.decoder.FangShanDecodeParameter.LSUOpcode.lsuOpcodeBits
 import fangshan.rtl.decoder.FangShanDecodeParameter.{LSUOpcode => lsuDecoderParams}
 import fangshan.utils.{FangShanUtils => utils}
 
@@ -16,9 +17,11 @@ import fangshan.utils.{FangShanUtils => utils}
   *   width of registers
   */
 case class FangShanEXUParams(
-  regNum: Int,
-  width:  Int,
-  lsOpBits: Int) {
+  regNum:    Int,
+  width:     Int,
+  wmask:     Int,
+  lsuOpBits: Int,
+  lsuAXIId: Int) {
 
   /** regNumWidth, width of the number of registers
     * @return
@@ -31,6 +34,8 @@ case class FangShanEXUParams(
     *   Int
     */
   def regWidth: Int = width
+
+  def lsuParams: FangShanLSUParams = FangShanLSUParams(xlen = width, regNum = regNum, lsuOpBits, lsuAXIId)
 }
 
 /** EXUInterface, Execution Unit Interface
@@ -40,7 +45,7 @@ case class FangShanEXUParams(
 class FangShanEXUInterface(parameter: FangShanEXUParams) extends Bundle {
   val clock:  Clock                       = Input(Clock())
   val reset:  Bool                        = Input(Bool())
-  val input:  DecoupledIO[EXUInputBundle] = Flipped(DecoupledIO(new EXUInputBundle(parameter.lsOpBits)))
+  val input:  DecoupledIO[EXUInputBundle] = Flipped(DecoupledIO(new EXUInputBundle(parameter.lsuOpBits)))
   val output: Valid[EXUOutputBundle]      = Valid(new EXUOutputBundle(parameter.regWidth, parameter.regNum))
 }
 
@@ -49,14 +54,14 @@ class FangShanEXUInterface(parameter: FangShanEXUParams) extends Bundle {
   *   parameters of the EXU
   */
 @instantiable
-class FangShanEXU(val parameter: FangShanParameter)
-    extends FixedIORawModule(new FangShanEXUInterface(parameter.exuParams))
+class FangShanEXU(val parameter: FangShanEXUParams)
+    extends FixedIORawModule(new FangShanEXUInterface(parameter))
     with ImplicitClock
     with ImplicitReset {
   override protected def implicitClock: Clock = io.clock
   override protected def implicitReset: Reset = io.reset
 
-  val lsu: FangShanLSU = Module(new FangShanLSU(parameter))
+  val lsu: FangShanLSU = Module(new FangShanLSU(parameter.lsuParams))
   utils.withClockAndReset(lsu.io.elements, implicitClock, implicitReset)
   utils.dontCarePorts(lsu.axiIn.elements)
   utils.dontCarePorts(lsu.in.elements)

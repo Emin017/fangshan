@@ -46,18 +46,18 @@ class FangShanRegistersIO(params: FangShanRegistersParams) extends Bundle {
 }
 
 /** FangShanRegistersFile, which is used to define the registers
-  * @param params
+  * @param parameter
   *   parameters of the registers
   */
 @instantiable
-class FangShanRegistersFile(params: FangShanParameter)
-    extends FixedIORawModule(new FangShanRegistersIO(params.regParams))
+class FangShanRegistersFile(parameter: FangShanRegistersParams)
+    extends FixedIORawModule(new FangShanRegistersIO(parameter))
     with ImplicitClock
     with ImplicitReset {
   override protected def implicitClock: Clock = io.clock
   override protected def implicitReset: Reset = io.reset
 
-  val registers: Vec[UInt] = RegInit(VecInit(Seq.fill(params.regNum)(0.U(params.width.W))))
+  val registers: Vec[UInt] = RegInit(VecInit(Seq.fill(parameter.num)(0.U(parameter.width.W))))
 
   when(io.writeEnable) {
     registers(io.writeAddr) := io.writeData
@@ -65,7 +65,7 @@ class FangShanRegistersFile(params: FangShanParameter)
 
   io.readData := registers(io.readAddr)
 
-  val probeWire: FangShanRegProbe = Wire(new FangShanRegProbe(params.regParams))
+  val probeWire: FangShanRegProbe = Wire(new FangShanRegProbe(parameter))
   define(io.probe, ProbeValue(probeWire))
   probeWire.haltValue := registers(10)
 
