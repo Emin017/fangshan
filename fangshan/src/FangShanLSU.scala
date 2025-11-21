@@ -26,28 +26,14 @@ case class FangShanLSUParams(
   def regWidth: Int = width
 
   def maskLen: Int = width / 8
-
-  def axi = new AXIBundle(32, 32)
-
-  /** inputBundle, input bundle of the EXU
-    * @return
-    *   EXUInputBundle
-    */
-  def inputBundle: LSUInputBundle = new LSUInputBundle(opcodeBits)
-
-  /** outputBundle, output bundle of the EXU
-    * @return
-    *   EXUOutputBundle
-    */
-  def outputBundle: LSUOutputBundle = new LSUOutputBundle
 }
 
 class FangShanLSUInterface(parameter: FangShanLSUParams) extends Bundle {
   val clock:  Clock                       = Input(Clock())
   val reset:  Bool                        = Input(Bool())
   val axi:    AXIBundle                   = new AXIBundle(32, 32)
-  val input:  DecoupledIO[LSUInputBundle] = Flipped(DecoupledIO(parameter.inputBundle))
-  val output: Valid[LSUOutputBundle]      = Valid(parameter.outputBundle)
+  val input:  DecoupledIO[LSUInputBundle] = Flipped(DecoupledIO(new LSUInputBundle(parameter.opcodeBits)))
+  val output: Valid[LSUOutputBundle]      = Valid(new LSUOutputBundle)
 }
 
 @instantiable

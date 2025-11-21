@@ -26,18 +26,6 @@ case class FangShanIDUParams(
     *   Int
     */
   def regWidth: Int = width
-
-  /** inputBundle, input bundle of the IDU
-    * @return
-    *   IDUInputBundle
-    */
-  def inputBundle: IDUInputBundle = new IDUInputBundle(width)
-
-  /** outputBundle, output bundle of the IDU
-    * @return
-    *   IDUOutputBundle
-    */
-  def outputBundle: IDUOutputBundle = new IDUOutputBundle(lsuOpBits)
 }
 
 /** IDUInterface, Instruction Decode Unit Interface
@@ -47,8 +35,8 @@ case class FangShanIDUParams(
 class FangShanIDUInterface(parameter: FangShanIDUParams) extends Bundle {
   val clock:  Clock                        = Input(Clock())
   val reset:  Reset                        = Input(Bool())
-  val input:  Valid[IDUInputBundle]        = Flipped(Valid(parameter.inputBundle))
-  val output: DecoupledIO[IDUOutputBundle] = DecoupledIO(parameter.outputBundle)
+  val input:  Valid[IDUInputBundle]        = Flipped(Valid(new IDUInputBundle(parameter.width)))
+  val output: DecoupledIO[IDUOutputBundle] = DecoupledIO(new IDUOutputBundle(parameter.lsuOpBits))
 }
 
 /** IDU, Instruction Decode Unit

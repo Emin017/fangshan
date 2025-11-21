@@ -20,10 +20,6 @@ case class FangShanIFUParams(
   def RegNumWidth: Int = log2Ceil(regNum)
 
   def RegWidth: Int = width
-
-  def inputBundle: IFUInputBundle = new IFUInputBundle(width)
-
-  def outputBundle: IFUOutputBundle = new IFUOutputBundle(width)
 }
 
 /** IFUInterface, Instruction Fetch Unit Interface
@@ -33,8 +29,8 @@ case class FangShanIFUParams(
 class FangShanIFUInterface(parameter: FangShanIFUParams) extends Bundle {
   val clock:  Clock                       = Input(Clock())
   val reset:  Reset                       = Input(Bool())
-  val input:  DecoupledIO[IFUInputBundle] = Flipped(DecoupledIO(parameter.inputBundle))
-  val output: Valid[IFUOutputBundle]      = Valid(parameter.outputBundle)
+  val input:  DecoupledIO[IFUInputBundle] = Flipped(DecoupledIO(new IFUInputBundle(parameter.width)))
+  val output: Valid[IFUOutputBundle]      = Valid(new IFUOutputBundle(parameter.width))
 }
 
 /** IFU, Instruction Fetch Unit

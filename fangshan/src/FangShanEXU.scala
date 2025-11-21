@@ -31,18 +31,6 @@ case class FangShanEXUParams(
     *   Int
     */
   def regWidth: Int = width
-
-  /** inputBundle, input bundle of the EXU
-    * @return
-    *   EXUInputBundle
-    */
-  def inputBundle: EXUInputBundle = new EXUInputBundle(lsOpBits)
-
-  /** outputBundle, output bundle of the EXU
-    * @return
-    *   EXUOutputBundle
-    */
-  def outputBundle: EXUOutputBundle = new EXUOutputBundle(regWidth, regNum)
 }
 
 /** EXUInterface, Execution Unit Interface
@@ -52,8 +40,8 @@ case class FangShanEXUParams(
 class FangShanEXUInterface(parameter: FangShanEXUParams) extends Bundle {
   val clock:  Clock                       = Input(Clock())
   val reset:  Bool                        = Input(Bool())
-  val input:  DecoupledIO[EXUInputBundle] = Flipped(DecoupledIO(parameter.inputBundle))
-  val output: Valid[EXUOutputBundle]      = Valid(parameter.outputBundle)
+  val input:  DecoupledIO[EXUInputBundle] = Flipped(DecoupledIO(new EXUInputBundle(parameter.lsOpBits)))
+  val output: Valid[EXUOutputBundle]      = Valid(new EXUOutputBundle(parameter.regWidth, parameter.regNum))
 }
 
 /** EXU, Execution Unit
