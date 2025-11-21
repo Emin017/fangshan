@@ -18,3 +18,11 @@ jobs:
         run: nix develop --command sh -c 'mill fangshan.checkFormat && mill elaborator.checkFormat'
       - name: Build and test
         run: nix run '.#fangshan.verilated'
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: DeterminateSystems/nix-installer-action@main
+      - name: Run tests
+        run: nix develop --command sh -c 'mill fangshan.test'
