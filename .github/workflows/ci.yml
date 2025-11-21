@@ -15,7 +15,7 @@ jobs:
       - name: Flake check
         run: nix flake check
       - name: Format check
-        run: nix develop --command sh -c 'mill __.checkFormat'
+        run: nix develop --command sh -c 'mill fangshan.checkFormat && mill elaborator.checkFormat'
   build:
     runs-on: ubuntu-latest
     steps:
