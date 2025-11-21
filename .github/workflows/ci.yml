@@ -7,7 +7,7 @@ on:
     branches:
       - main
 jobs:
-  build:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -15,7 +15,13 @@ jobs:
       - name: Flake check
         run: nix flake check
       - name: Format check
-        run: nix develop --command sh -c 'mill fangshan.checkFormat && mill elaborator.checkFormat'
+        run: nix develop --command sh -c 'mill __.checkFormat'
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: DeterminateSystems/nix-installer-action@main
       - name: Build and test
         run: nix run '.#fangshan.verilated'
 
