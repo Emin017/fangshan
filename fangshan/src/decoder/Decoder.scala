@@ -143,7 +143,7 @@ object FangShanDecodeParameter {
 
     def lsuOpcodeBits: Int = signBits + sizeBits + maskBits + isLoadStoreBits + enableBits // 1 + 2 + 8 + 1 + 1 = 13
 
-    final class lsuExtractBundle extends Bundle {
+    final class LSUExtractBundle extends Bundle {
       val enableReadWrite: Bool = Bool()
       val isLoadStore:     UInt = UInt(isLoadStoreBits.W)
       val writeMask:       UInt = UInt(maskBits.W)
@@ -151,11 +151,11 @@ object FangShanDecodeParameter {
       val isSigned:        UInt = UInt(signBits.W)
     }
 
-    def extractBundle: lsuExtractBundle = new lsuExtractBundle
+    def extractBundle: LSUExtractBundle = new LSUExtractBundle
 
-    def extractLsuOp(opcode: UInt): lsuExtractBundle = {
+    def extractLsuOp(opcode: UInt): LSUExtractBundle = {
       require(opcode.getWidth == lsuOpcodeBits, s"opcode width must be $lsuOpcodeBits")
-      val extractedBundle = new lsuExtractBundle
+      val extractedBundle = new LSUExtractBundle
       opcode.asTypeOf(extractedBundle)
     }
   }

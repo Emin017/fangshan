@@ -62,8 +62,8 @@ class IDUOutputBundle(lsOpBits: Int) extends Bundle {
 }
 
 class LSUInputBundle(opcodeBits: Int) extends Bundle {
-  import fangshan.rtl.decoder.FangShanDecodeParameter.LSUOpcode._
-  val ctrlInput = new lsuExtractBundle
+  import fangshan.rtl.decoder.FangShanDecodeParameter.LSUOpcode.LSUExtractBundle
+  val ctrlInput = new LSUExtractBundle
   val address   = UInt(32.W)
   val dataInput = UInt(32.W)
 }
