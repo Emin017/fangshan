@@ -16,7 +16,7 @@ import fangshan.utils.{FangShanUtils => utils}
   */
 case class FangShanIFUParams(
   regNum: Int,
-  width: Int,
+  width:  Int,
   memParams: FangShanMemoryParams) {
   def RegNumWidth: Int = log2Ceil(regNum)
 
@@ -61,8 +61,8 @@ class FangShanIFU(val parameter: FangShanIFUParams)
   // so we use RegNext to delay the signal.
   M.io.read.valid        := RegNext(io.input.valid)
   // Same as the read.valid above
-  io.output.valid     := (M.io.dataOut =/= 0.U) && io.input.valid && !RegNext(io.reset).asBool
-  io.output.bits.inst := M.io.dataOut
+  io.output.valid        := (M.io.dataOut =/= 0.U) && io.input.valid && !RegNext(io.reset).asBool
+  io.output.bits.inst    := M.io.dataOut
 
   dontTouch(io.output.bits.inst)
   dontTouch(io.input.bits.read)
