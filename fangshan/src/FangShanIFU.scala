@@ -64,9 +64,7 @@ class FangShanIFU(val parameter: FangShanParameter)
   // so we use RegNext to delay the signal.
   M.io.read.valid        := RegNext(io.input.valid)
   // Same as the read.valid above
-  val noReset = RegNext(io.reset)
-  // FIXME: This is a workaround for fetching the first instruction, it should be removed when we add nop instruction.
-  io.output.valid     := (M.io.dataOut =/= 0.U) && io.input.valid && !noReset.asBool
+  io.output.valid     := (M.io.dataOut =/= 0.U) && io.input.valid && !RegNext(io.reset).asBool
   io.output.bits.inst := M.io.dataOut
 
   dontTouch(io.output.bits.inst)
