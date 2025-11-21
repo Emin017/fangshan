@@ -9,31 +9,28 @@ import scala.reflect.io.Directory
 object FSSimulator extends PeekPokeAPI {
   trait SimulatorWithWorkspace {
     def apply[T <: chisel3.RawModule](
-      module:       => T,
-      layerControl: LayerControl.Type = LayerControl.EnableAll
-    )(body:         T => Unit
+      module: => T
+    )(body:   T => Unit
     ): Unit
   }
 
   def getSimulator(workspace: String): SimulatorWithWorkspace = {
     new SimulatorWithWorkspace {
       def apply[T <: chisel3.RawModule](
-        module:       => T,
-        layerControl: LayerControl.Type = LayerControl.EnableAll
-      )(body:         T => Unit
+        module: => T
+      )(body:   T => Unit
       ): Unit = {
-        simulate(workspace, module, layerControl)(body)
+        simulate(workspace, module)(body)
       }
     }
   }
 
   def simulate[T <: chisel3.RawModule](
-    workspace:    String,
-    module:       => T,
-    layerControl: LayerControl.Type = LayerControl.EnableAll
-  )(body:         (T) => Unit
+    workspace: String,
+    module:    => T
+  )(body:      (T) => Unit
   ): Unit = {
-    makeSimulator(workspace).simulate(module, layerControl)({ module => body(module.wrapped) }).result
+    makeSimulator(workspace).simulate(module)({ module => body(module.wrapped) }).result
   }
 
   private class DefaultVerilatorSimulator(val workspacePath: String) extends SingleBackendSimulator[verilator.Backend] {
