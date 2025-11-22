@@ -16,9 +16,16 @@ object FSSimulator extends PeekPokeAPI {
     }
   }
 
+  /** Get a simulator instance with a specified workspace.
+    *
+    * @param workspace
+    *   The workspace directory for the simulator.
+    * @return
+    *   SimulatorWithWorkspace
+    */
   def getSimulator(workspace: String): SimulatorWithWorkspace = new SimulatorWithWorkspace(workspace)
 
-  def simulate[T <: chisel3.RawModule](
+  private def simulate[T <: chisel3.RawModule](
     workspace: String,
     module:    => T
   )(body:      (T) => Unit
