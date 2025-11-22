@@ -1,7 +1,7 @@
 package fangshan.rtl.decoder
 
 import chisel3._
-import fangshan.rtl.simulator._
+import fangshan.rtl.simulator.FSSimulator
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import chisel3.simulator.PeekPokeAPI._
@@ -33,13 +33,11 @@ class DecoderSpec extends AnyFlatSpec with Matchers {
     io.out.rdEn      := decodeResult(RdEn)
   }
 
-  val simulator = new FSVerilatorSimulator("test-dir/decoderSpec")
-
+  val simulate = FSSimulator.getSimulator("decoder")
   behavior.of("Decoder")
 
   it should "decode ADDI instruction correctly" in {
-    simulator.simulate(new DecoderWrapper) { controller =>
-      val dut      = controller.wrapped
+    simulate(new DecoderWrapper) { dut =>
       // ADDI x1, x0, 1
       // imm=1(12), rs1=0(5), funct3=0(3), rd=1(5), opcode=0010011(7)
       // 000000000001 00000 000 00001 0010011
@@ -63,8 +61,7 @@ class DecoderSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "decode SW instruction correctly" in {
-    simulator.simulate(new DecoderWrapper) { controller =>
-      val dut    = controller.wrapped
+    simulate(new DecoderWrapper) { dut =>
       // SW x1, 0(x2)
       // imm=0(12), rs2=1(5), rs1=2(5), funct3=010(3), imm=0(5), opcode=0100011(7)
       // 0000000 00001 00010 010 00000 0100011
@@ -90,8 +87,7 @@ class DecoderSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "decode LB instruction correctly" in {
-    simulator.simulate(new DecoderWrapper) { controller =>
-      val dut    = controller.wrapped
+    simulate(new DecoderWrapper) { dut =>
       // LB x1, 4(x2)
       // imm=4(12), rs1=2(5), funct3=000(3), rd=1(5), opcode=0000011(7)
       // 000000000100 00010 000 00001 0000011
@@ -117,8 +113,7 @@ class DecoderSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "decode LBU instruction correctly" in {
-    simulator.simulate(new DecoderWrapper) { controller =>
-      val dut     = controller.wrapped
+    simulate(new DecoderWrapper) { dut =>
       // LBU x3, 8(x4)
       // imm=8(12), rs1=4(5), funct3=100(3), rd=3(5), opcode=0000011(7)
       // 000000001000 00100 100 00011 0000011
@@ -144,8 +139,7 @@ class DecoderSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "decode LW instruction correctly" in {
-    simulator.simulate(new DecoderWrapper) { controller =>
-      val dut    = controller.wrapped
+    simulate(new DecoderWrapper) { dut =>
       // LW x5, 12(x6)
       // imm=12(12), rs1=6(5), funct3=010(3), rd=5(5), opcode=0000011(7)
       // 000000001100 00110 010 00101 0000011
