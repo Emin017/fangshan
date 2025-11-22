@@ -7,23 +7,16 @@ import java.io.File
 import scala.reflect.io.Directory
 
 object FSSimulator extends PeekPokeAPI {
-  trait SimulatorWithWorkspace {
+  class SimulatorWithWorkspace(workspace: String) {
     def apply[T <: chisel3.RawModule](
       module: => T
     )(body:   T => Unit
-    ): Unit
-  }
-
-  def getSimulator(workspace: String): SimulatorWithWorkspace = {
-    new SimulatorWithWorkspace {
-      def apply[T <: chisel3.RawModule](
-        module: => T
-      )(body:   T => Unit
-      ): Unit = {
-        simulate(workspace, module)(body)
-      }
+    ): Unit = {
+      simulate(workspace, module)(body)
     }
   }
+
+  def getSimulator(workspace: String): SimulatorWithWorkspace = new SimulatorWithWorkspace(workspace)
 
   def simulate[T <: chisel3.RawModule](
     workspace: String,
