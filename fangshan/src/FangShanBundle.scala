@@ -46,7 +46,7 @@ class ALUInputBundle(width: Int) extends Bundle {
   val rs1:     UInt = UInt(width.W)
   val rs2:     UInt = UInt(width.W)
   val pc:      UInt = UInt(width.W)
-  val opcode:  UInt = UInt(3.W)
+  val opcode:  UInt = UInt(3.W) // Use func3 to define ALU operation
   val isAdd:   Bool = Bool()
   val isArith: Bool = Bool()
 }
