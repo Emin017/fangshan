@@ -36,7 +36,7 @@ class FangShanIDUInterface(parameter: FangShanIDUParams) extends Bundle {
   val clock:  Clock                        = Input(Clock())
   val reset:  Reset                        = Input(Bool())
   val input:  Valid[IDUInputBundle]        = Flipped(Valid(new IDUInputBundle(parameter.width)))
-  val output: DecoupledIO[IDUOutputBundle] = DecoupledIO(new IDUOutputBundle(parameter.lsuOpBits))
+  val output: DecoupledIO[IDUOutputBundle] = DecoupledIO(new IDUOutputBundle(parameter.width, parameter.lsuOpBits))
 }
 
 /** IDU, Instruction Decode Unit
@@ -69,10 +69,10 @@ class FangShanIDU(val parameter: FangShanIDUParams)
   val instValid: Bool = decoderParams.isInOpcodeSet(decodeOpcode)
 
   io.output.valid                   := io.input.valid && instValid
-  io.output.bits.aluBundle.rs1      := Mux(decodeRs1En, inst(19, 15), 0.U)
-  io.output.bits.aluBundle.rs2      := Mux(decodeRs2En, inst(24, 20), immI(inst))
-  io.output.bits.ctrlSigs.rd        := Mux(decodeRdEn, inst(11, 7), 0.U)
-  io.output.bits.aluBundle.opcode   := decodeAluOpcode
+  io.output.bits.srcBundle.rs1      := Mux(decodeRs1En, inst(19, 15), 0.U)
+  io.output.bits.srcBundle.rs2      := Mux(decodeRs2En, inst(24, 20), immI(inst))
+  io.output.bits.srcBundle.rd        := Mux(decodeRdEn, inst(11, 7), 0.U)
+  io.output.bits.ctrlSigs.aluOpcode := decodeAluOpcode
   io.output.bits.ctrlSigs.lsuOpcode := decodeLsuOpcode
   io.output.bits.ctrlSigs.ebreak    := decodeOpcode === decoderParams.ebreakOpcode
 

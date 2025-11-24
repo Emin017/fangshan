@@ -4,9 +4,8 @@
 package fangshan.rtl
 
 import chisel3._
-import chisel3.experimental.hierarchy.instantiable
+import chisel3.experimental.hierarchy.{instantiable, Instantiate, Instance}
 import chisel3.util.{log2Ceil, DecoupledIO, Valid}
-import fangshan.rtl.decoder.FangShanDecodeParameter.LSUOpcode.lsuOpcodeBits
 import fangshan.rtl.decoder.FangShanDecodeParameter.{LSUOpcode => lsuDecoderParams}
 import fangshan.utils.{FangShanUtils => utils}
 
@@ -36,6 +35,8 @@ case class FangShanEXUParams(
   def regWidth: Int = width
 
   def lsuParams: FangShanLSUParams = FangShanLSUParams(xlen = width, regNum = regNum, lsuOpBits, lsuAXIId)
+
+  def aluParams: FangShanALUParams = FangShanALUParams(width)
 }
 
 /** EXUInterface, Execution Unit Interface
@@ -45,7 +46,9 @@ case class FangShanEXUParams(
 class FangShanEXUInterface(parameter: FangShanEXUParams) extends Bundle {
   val clock:  Clock                       = Input(Clock())
   val reset:  Bool                        = Input(Bool())
-  val input:  DecoupledIO[EXUInputBundle] = Flipped(DecoupledIO(new EXUInputBundle(parameter.lsuOpBits)))
+  val input:  DecoupledIO[EXUInputBundle] = Flipped(
+    DecoupledIO(new EXUInputBundle(parameter.width, parameter.lsuOpBits))
+  )
   val output: Valid[EXUOutputBundle]      = Valid(new EXUOutputBundle(parameter.regWidth, parameter.regNum))
 }
 
@@ -67,15 +70,18 @@ class FangShanEXU(val parameter: FangShanEXUParams)
   utils.dontCarePorts(lsu.in.elements)
   lsu.io.input.ctrlInput := lsuDecoderParams.extractLsuOp(io.input.bits.ctrlSigs.lsuOpcode)
 
+  val alu: Instance[FangShanALU] = Instantiate(new FangShanALU(parameter.aluParams))
+  utils.dontCarePorts(alu.io.elements)
+
   val res: UInt = WireInit(0.U(parameter.width.W))
-  res := io.input.bits.aluBundle.rs1 + io.input.bits.aluBundle.rs2
+  res := io.input.bits.srcBundle.rs1 + io.input.bits.srcBundle.rs2
 
   val ebreak: Bool = io.input.bits.ctrlSigs.ebreak
   io.input.ready        := true.B
   io.output.valid       := true.B
   io.output.bits.update := true.B
   io.output.bits.result := res
-  io.output.bits.rd     := io.input.bits.ctrlSigs.rd
+  io.output.bits.rd     := io.input.bits.srcBundle.rd
   dontTouch(ebreak)
   dontTouch(res)
 }
