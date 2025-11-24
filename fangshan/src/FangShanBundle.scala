@@ -35,17 +35,30 @@ class IFUOutputBundle(width: Int) extends Bundle {
 /** CtrlSigBundle, which is used to define the control signals, include [[rd]]
   */
 class CtrlSigBundle(lsOpBits: Int) extends Bundle {
-  val rd:        UInt = UInt(4.W)
   val ebreak:    Bool = Bool()
   val lsuOpcode: UInt = UInt(lsOpBits.W)
+  val aluOpcode: UInt = UInt(2.W)
 }
 
 /** ALUInputBundle, which is used to define the input bundle of the ALU, include [[rs1]], [[rs2]], [[opcode]]
   */
-class ALUInputBundle extends Bundle {
-  val rs1:    UInt = UInt(32.W)
-  val rs2:    UInt = UInt(32.W)
-  val opcode: UInt = UInt(4.W)
+class ALUInputBundle(width: Int) extends Bundle {
+  val rs1:     UInt = UInt(width.W)
+  val rs2:     UInt = UInt(width.W)
+  val pc:      UInt = UInt(width.W)
+  val opcode:  UInt = UInt(3.W) // Use func3 to define ALU operation
+  val isAdd:   Bool = Bool()
+  val isArith: Bool = Bool()
+}
+
+class ALUOutputBundle(width: Int) extends Bundle {
+  val result: UInt = UInt(width.W)
+}
+
+class SrcBundle(width: Int) extends Bundle {
+  val rs1: UInt = UInt(width.W)
+  val rs2: UInt = UInt(width.W)
+  val rd:  UInt = UInt(width.W)
 }
 
 /** IDUInputBundle, which is used to define the input bundle of the IDU, include [[inst]]
@@ -56,9 +69,9 @@ class IDUInputBundle(width: Int) extends Bundle {
 
 /** IDUOutputBundle, which is used to define the output bundle of the IDU, include [[aluBundle]] and [[ctrlSigs]]
   */
-class IDUOutputBundle(lsOpBits: Int) extends Bundle {
-  val aluBundle = new ALUInputBundle
-  val ctrlSigs  = new CtrlSigBundle(lsOpBits)
+class IDUOutputBundle(width: Int, lsuOpBits: Int) extends Bundle {
+  val srcBundle = new SrcBundle(width)
+  val ctrlSigs  = new CtrlSigBundle(lsuOpBits)
 }
 
 class LSUInputBundle(opcodeBits: Int) extends Bundle {
@@ -74,8 +87,8 @@ class LSUOutputBundle extends Bundle {
 
 /** EXUInputBundle, which is used to define the input bundle of the EXU, include [[aluBundle]] and [[ctrlSigs]]
   */
-class EXUInputBundle(lsuOpBits: Int) extends Bundle {
-  val aluBundle = new ALUInputBundle
+class EXUInputBundle(width: Int, lsuOpBits: Int) extends Bundle {
+  val srcBundle = new SrcBundle(width)
   val ctrlSigs  = new CtrlSigBundle(lsuOpBits)
 }
 

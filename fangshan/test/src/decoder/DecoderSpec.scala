@@ -12,9 +12,8 @@ class DecoderSpec extends AnyFlatSpec with Matchers {
     val io = IO(new Bundle {
       val inst = Input(UInt(32.W))
       val out  = Output(new Bundle {
-        val opcode    = UInt(8.W)
         val immType   = UInt(3.W)
-        val aluOpcode = UInt(3.W)
+        val aluOpcode = UInt(2.W)
         val lsuOpcode = UInt(FangShanDecodeParameter.LSUOpcode.lsuOpcodeBits.W)
         val rs1En     = Bool()
         val rs2En     = Bool()
@@ -24,7 +23,6 @@ class DecoderSpec extends AnyFlatSpec with Matchers {
 
     val decodeResult = Decoder.decode(io.inst)
 
-    io.out.opcode    := decodeResult(Opcode)
     io.out.immType   := decodeResult(ImmType)
     io.out.aluOpcode := decodeResult(AluOpcode)
     io.out.lsuOpcode := decodeResult(LsuOpcode)
@@ -47,9 +45,6 @@ class DecoderSpec extends AnyFlatSpec with Matchers {
       dut.io.inst.poke(addiInst)
       dut.clock.step()
 
-      // Verify Opcode
-      dut.io.out.opcode.expect(FangShanDecodeParameter.addiOpcode.value)
-
       // Verify Control Signals
       dut.io.out.rs1En.expect(true.B)
       dut.io.out.rs2En.expect(false.B)
@@ -70,9 +65,6 @@ class DecoderSpec extends AnyFlatSpec with Matchers {
 
       dut.io.inst.poke(swInst)
       dut.clock.step()
-
-      // Verify Opcode
-      dut.io.out.opcode.expect(FangShanDecodeParameter.swOpcode.value)
 
       // Verify Control Signals
       dut.io.out.rs1En.expect(true.B)
@@ -97,9 +89,6 @@ class DecoderSpec extends AnyFlatSpec with Matchers {
       dut.io.inst.poke(lbInst)
       dut.clock.step()
 
-      // Verify Opcode
-      dut.io.out.opcode.expect(FangShanDecodeParameter.lbOpcode.value)
-
       // Verify Control Signals
       dut.io.out.rs1En.expect(true.B)
       dut.io.out.rs2En.expect(false.B)
@@ -122,9 +111,6 @@ class DecoderSpec extends AnyFlatSpec with Matchers {
 
       dut.io.inst.poke(lbuInst)
       dut.clock.step()
-
-      // Verify Opcode
-      dut.io.out.opcode.expect(FangShanDecodeParameter.lbuOpcode.value)
 
       // Verify Control Signals
       dut.io.out.rs1En.expect(true.B)
@@ -149,9 +135,6 @@ class DecoderSpec extends AnyFlatSpec with Matchers {
       dut.io.inst.poke(lwInst)
       dut.clock.step()
 
-      // Verify Opcode
-      dut.io.out.opcode.expect(FangShanDecodeParameter.lwOpcode.value)
-
       // Verify Control Signals
       dut.io.out.rs1En.expect(true.B)
       dut.io.out.rs2En.expect(false.B)
@@ -161,6 +144,111 @@ class DecoderSpec extends AnyFlatSpec with Matchers {
       // LW -> isSigned(0) ## fourByte(10) ## wordMask(00001111) ## isLoad(0) ## isReadOrWrite(1)
       // 0 ## 10 ## 00001111 ## 0 ## 1 = 0100000111101
       dut.io.out.lsuOpcode.expect(FangShanDecodeParameter.LSUOpcode.lwOpcode.value)
+    }
+  }
+
+  it should "decode ADD instruction correctly" in {
+    simulate(new DecoderWrapper) { dut =>
+      // ADD x1, x2, x3
+      // funct7=0000000(7), rs2=3(5), rs1=2(5), funct3=000(3), rd=1(5), opcode=0110011(7)
+      // 0000000 00011 00010 000 00001 0110011
+      // 0x003100B3
+      val addInst = "h003100B3".U(32.W)
+
+      dut.io.inst.poke(addInst)
+      dut.clock.step()
+
+      // Verify Control Signals
+      dut.io.out.rs1En.expect(true.B)
+      dut.io.out.rs2En.expect(true.B)
+      dut.io.out.rdEn.expect(true.B)
+
+      // Verify ALU Opcode (ADD -> addOpcode = 0b01)
+      dut.io.out.aluOpcode.expect(1.U)
+    }
+  }
+
+  it should "decode SUB instruction correctly" in {
+    simulate(new DecoderWrapper) { dut =>
+      // SUB x4, x5, x6
+      // funct7=0100000(7), rs2=6(5), rs1=5(5), funct3=000(3), rd=4(5), opcode=0110011(7)
+      // 0100000 00110 00101 000 00100 0110011
+      // 0x40628233
+      val subInst = "h40628233".U(32.W)
+
+      dut.io.inst.poke(subInst)
+      dut.clock.step()
+
+      // Verify Control Signals
+      dut.io.out.rs1En.expect(true.B)
+      dut.io.out.rs2En.expect(true.B)
+      dut.io.out.rdEn.expect(true.B)
+
+      // Verify ALU Opcode (SUB -> subOpcode = 0b00)
+      dut.io.out.aluOpcode.expect(0.U)
+    }
+  }
+
+  it should "decode SRA instruction correctly" in {
+    simulate(new DecoderWrapper) { dut =>
+      // SRA x7, x8, x9
+      // funct7=0100000(7), rs2=9(5), rs1=8(5), funct3=101(3), rd=7(5), opcode=0110011(7)
+      // 0100000 01001 01000 101 00111 0110011
+      // 0x409453B3
+      val sraInst = "h409453B3".U(32.W)
+
+      dut.io.inst.poke(sraInst)
+      dut.clock.step()
+
+      // Verify Control Signals
+      dut.io.out.rs1En.expect(true.B)
+      dut.io.out.rs2En.expect(true.B)
+      dut.io.out.rdEn.expect(true.B)
+
+      // Verify ALU Opcode (SRA -> sraOpcode = 0b11)
+      dut.io.out.aluOpcode.expect(3.U)
+    }
+  }
+
+  it should "decode SRLI instruction correctly" in {
+    simulate(new DecoderWrapper) { dut =>
+      // SRLI x10, x11, 5
+      // imm=000000000101(12), rs1=11(5), funct3=101(3), rd=10(5), opcode=0010011(7)
+      // 000000000101 01011 101 01010 0010011
+      // 0x0055D513
+      val srliInst = "h0055D513".U(32.W)
+
+      dut.io.inst.poke(srliInst)
+      dut.clock.step()
+
+      // Verify Control Signals
+      dut.io.out.rs1En.expect(true.B)
+      dut.io.out.rs2En.expect(false.B)
+      dut.io.out.rdEn.expect(true.B)
+
+      // ALU Opcode for SRLI is otherAluOpcode (don't care pattern)
+      // We don't check the exact value since it's a don't care pattern
+    }
+  }
+
+  it should "decode XOR instruction correctly" in {
+    simulate(new DecoderWrapper) { dut =>
+      // XOR x12, x13, x14
+      // funct7=0000000(7), rs2=14(5), rs1=13(5), funct3=100(3), rd=12(5), opcode=0110011(7)
+      // 0000000 01110 01101 100 01100 0110011
+      // 0x00E6C633
+      val xorInst = "h00E6C633".U(32.W)
+
+      dut.io.inst.poke(xorInst)
+      dut.clock.step()
+
+      // Verify Control Signals
+      dut.io.out.rs1En.expect(true.B)
+      dut.io.out.rs2En.expect(true.B)
+      dut.io.out.rdEn.expect(true.B)
+
+      // ALU Opcode for XOR is otherAluOpcode (don't care pattern)
+      // We don't check the exact value since it's a don't care pattern
     }
   }
 }
