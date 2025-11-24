@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-svdpi = { version = "0.0.3" }
+svdpi = { version = "0.0.5" }
 rand = "0.8"
 num-traits = "0.2.19"
 num-bigint = { version = "0.4.6", features = ["rand"] }
