@@ -4,7 +4,7 @@
 package fangshan.rtl
 
 import chisel3._
-import chisel3.experimental.hierarchy.{instantiable, Instantiate, Instance}
+import chisel3.experimental.hierarchy.{instantiable, Instance, Instantiate}
 import chisel3.util.{log2Ceil, DecoupledIO, Valid}
 import fangshan.rtl.decoder.FangShanDecodeParameter.{LSUOpcode => lsuDecoderParams}
 import fangshan.utils.{FangShanUtils => utils}

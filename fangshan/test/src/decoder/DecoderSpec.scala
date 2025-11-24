@@ -5,7 +5,6 @@ import fangshan.rtl.simulator.FSSimulator
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import chisel3.simulator.PeekPokeAPI._
-import chisel3.util.BitPat
 
 class DecoderSpec extends AnyFlatSpec with Matchers {
   // Wrapper to expose Decoder outputs for testing

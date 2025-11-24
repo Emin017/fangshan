@@ -7,7 +7,7 @@ import org.chipsalliance.rvdecoderdb.{extractResource, Instruction}
 import fangshan.rtl.decoder.{FangShanDecodeParameter => params}
 
 object FangShanDecodeParameter {
-  def ebreakOpcode:   BitPat = BitPat("b00000000000100000000000001110011")
+  def ebreakOpcode: BitPat = BitPat("b00000000000100000000000001110011")
 
   object ALUOpcode {
     def isArithShift:  BitPat = BitPat("b1")
@@ -97,7 +97,6 @@ object FangShanDecodeParameter {
 case class FangShanDecodePattern(inst: Instruction) extends DecodePattern {
   override def bitPat: BitPat = BitPat("b" + inst.encoding.toString)
 }
-
 
 /** ImmType, which is used to define the immediate type decode field
   */
