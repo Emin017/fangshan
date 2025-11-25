@@ -12,6 +12,7 @@ class DecoderSpec extends AnyFlatSpec with Matchers {
     val io = IO(new Bundle {
       val inst = Input(UInt(32.W))
       val out  = Output(new Bundle {
+        val instValid = Bool()
         val immType   = UInt(3.W)
         val aluOpcode = UInt(2.W)
         val lsuOpcode = UInt(FangShanDecodeParameter.LSUOpcode.lsuOpcodeBits.W)
@@ -23,6 +24,7 @@ class DecoderSpec extends AnyFlatSpec with Matchers {
 
     val decodeResult = Decoder.decode(io.inst)
 
+    io.out.instValid := decodeResult(InstValid)
     io.out.immType   := decodeResult(ImmType)
     io.out.aluOpcode := decodeResult(AluOpcode)
     io.out.lsuOpcode := decodeResult(LsuOpcode)
@@ -33,6 +35,62 @@ class DecoderSpec extends AnyFlatSpec with Matchers {
 
   val simulate = FSSimulator.getSimulator("decoder")
   behavior.of("Decoder")
+
+  it should "report InstValid as true for valid RV32I instructions" in {
+    simulate(new DecoderWrapper) { dut =>
+      // Test ADDI (I-type)
+      dut.io.inst.poke("h00100093".U(32.W)) // ADDI x1, x0, 1
+      dut.io.out.instValid.expect(true.B)
+
+      // Test ADD (R-type)
+      dut.io.inst.poke("h003100B3".U(32.W)) // ADD x1, x2, x3
+      dut.io.out.instValid.expect(true.B)
+
+      // Test LW (Load)
+      dut.io.inst.poke("h00C32283".U(32.W)) // LW x5, 12(x6)
+      dut.io.out.instValid.expect(true.B)
+
+      // Test SW (Store)
+      dut.io.inst.poke("h00112023".U(32.W)) // SW x1, 0(x2)
+      dut.io.out.instValid.expect(true.B)
+
+      // Test BEQ (Branch)
+      dut.io.inst.poke("h00208063".U(32.W)) // BEQ x1, x2, 0
+      dut.io.out.instValid.expect(true.B)
+
+      // Test JAL (Jump)
+      dut.io.inst.poke("h000000EF".U(32.W)) // JAL x1, 0
+      dut.io.out.instValid.expect(true.B)
+
+      // Test JALR (Jump Register)
+      dut.io.inst.poke("h000080E7".U(32.W)) // JALR x1, x1, 0
+      dut.io.out.instValid.expect(true.B)
+
+      // Test LUI (U-type)
+      dut.io.inst.poke("h000010B7".U(32.W)) // LUI x1, 1
+      dut.io.out.instValid.expect(true.B)
+
+      // Test AUIPC (U-type)
+      dut.io.inst.poke("h00001097".U(32.W)) // AUIPC x1, 1
+      dut.io.out.instValid.expect(true.B)
+    }
+  }
+
+  it should "report InstValid as false for invalid instructions" in {
+    simulate(new DecoderWrapper) { dut =>
+      // Test invalid opcode (all zeros)
+      dut.io.inst.poke("h00000000".U(32.W))
+      dut.io.out.instValid.expect(false.B)
+
+      // Test invalid opcode pattern
+      dut.io.inst.poke("hFFFFFFFF".U(32.W))
+      dut.io.out.instValid.expect(false.B)
+
+      // Test random invalid instruction
+      dut.io.inst.poke("h12345678".U(32.W))
+      dut.io.out.instValid.expect(false.B)
+    }
+  }
 
   it should "decode ADDI instruction correctly" in {
     simulate(new DecoderWrapper) { dut =>

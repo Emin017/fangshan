@@ -98,6 +98,17 @@ case class FangShanDecodePattern(inst: Instruction) extends DecodePattern {
   override def bitPat: BitPat = BitPat("b" + inst.encoding.toString)
 }
 
+object InstValid extends BoolDecodeField[FangShanDecodePattern] {
+  def name: String = "instValid"
+
+  // All instructions in the decode table are valid, return true (y)
+  // For instructions not in the table, the decoder will use the default value (n)
+  override def genTable(i: FangShanDecodePattern): BitPat = y
+
+  // Set default to false for invalid/unknown instructions
+  override def default: BitPat = n
+}
+
 /** ImmType, which is used to define the immediate type decode field
   */
 object ImmType extends DecodeField[FangShanDecodePattern, UInt] {
@@ -203,7 +214,7 @@ object RdEn extends BoolDecodeField[FangShanDecodePattern] {
 
 object Decoder {
   private def allDecodeField:   Seq[DecodeField[FangShanDecodePattern, _ >: Bool <: UInt]] =
-    Seq(ImmType, AluOpcode, LsuOpcode, Rs1En, Rs2En, RdEn)
+    Seq(InstValid, ImmType, AluOpcode, LsuOpcode, Rs1En, Rs2En, RdEn)
   private def allDecodePattern: Seq[FangShanDecodePattern]                                 =
     allInstructions.map(FangShanDecodePattern(_)).sortBy(_.inst.name)
 

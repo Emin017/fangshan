@@ -65,7 +65,7 @@ class FangShanIDU(val parameter: FangShanIDUParams)
   val decodeAluOpcode: UInt         = decodeResult(AluOpcode)
   val decodeLsuOpcode: UInt         = decodeResult(LsuOpcode)
 
-  val instValid: Bool = true.B // TODO: Placeholder for future instruction validity check
+  val instValid: Bool = decodeResult(InstValid)
 
   io.output.valid                     := io.input.valid && instValid
   io.output.bits.srcBundle.rs1        := Mux(decodeRs1En, inst(19, 15), 0.U)
