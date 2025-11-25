@@ -51,16 +51,13 @@ class FangShanIFU(val parameter: FangShanIFUParams)
 
   val M: FangShanMemory = Module(new FangShanMemory(parameter.memParams))
 
-  utils.withClockAndReset(M.io.elements, implicitClock, implicitReset)
+  utils.withClockAndReset(M.io, implicitClock, implicitReset)
 
-  utils.dontCarePorts(M.io.write.elements)
+  utils.dontCarePorts(M.io.write)
   M.io.write.valid := false.B
 
   M.io.read.bits.address := io.input.bits.address
-  // We want cpu start fetching signal after the reset signal is released,
-  // so we use RegNext to delay the signal.
   M.io.read.valid        := io.input.valid
-  // Same as the read.valid above
   io.output.valid        := (M.io.dataOut =/= 0.U) && io.input.valid
   io.output.bits.inst    := M.io.dataOut
 

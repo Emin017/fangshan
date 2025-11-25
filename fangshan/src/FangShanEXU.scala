@@ -65,13 +65,13 @@ class FangShanEXU(val parameter: FangShanEXUParams)
   override protected def implicitReset: Reset = io.reset
 
   val lsu: FangShanLSU = Module(new FangShanLSU(parameter.lsuParams))
-  utils.withClockAndReset(lsu.io.elements, implicitClock, implicitReset)
-  utils.dontCarePorts(lsu.axiIn.elements)
-  utils.dontCarePorts(lsu.in.elements)
+  utils.withClockAndReset(lsu.io, implicitClock, implicitReset)
+  utils.dontCarePorts(lsu.axiIn)
+  utils.dontCarePorts(lsu.in)
   lsu.io.input.ctrlInput := lsuDecoderParams.extractLsuOp(io.input.bits.ctrlSigs.lsuOpcode)
 
   val alu: Instance[FangShanALU] = Instantiate(new FangShanALU(parameter.aluParams))
-  utils.dontCarePorts(alu.io.elements)
+  utils.dontCarePorts(alu.io)
   dontTouch(alu.io)
   alu.io.input.rs1         := io.input.bits.srcBundle.rs1
   alu.io.input.rs2         := io.input.bits.srcBundle.rs2

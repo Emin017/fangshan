@@ -17,8 +17,8 @@ object FangShanUtils {
 
   /** Connect clock and reset to elements
     *
-    * @param element
-    *   elements to be connected
+    * @param bundle
+    *   bundle to be connected
     * @param clock
     *   clock signal, such as: Clock
     * @param reset
@@ -26,8 +26,8 @@ object FangShanUtils {
     * @return
     *   Iterable[Unit]
     */
-  def withClockAndReset(element: SeqMap[String, Data], clock: Clock, reset: Reset): Iterable[Unit] = {
-    element.map { case (name, element) =>
+  def withClockAndReset[T <: Bundle](bundle: T, clock: Clock, reset: Reset): Iterable[Unit] = {
+    bundle.elements.map { case (name, element) =>
       name match {
         case "clock" => element.asInstanceOf[Clock] := clock
         case "reset" => element.asInstanceOf[Reset] := reset
@@ -38,13 +38,13 @@ object FangShanUtils {
 
   /** Set all ports to DontCare except for ignorePorts
     *
-    * @param element
-    *   elements to be set to DontCare
+    * @param bundle
+    *   bundle to be set to DontCare
     * @return
     *   Iterable[Unit]
     */
-  def dontCarePorts(element: SeqMap[String, Data]): Iterable[Unit] = {
-    element.map { case (name, element) =>
+  def dontCarePorts[T <: Bundle](bundle: T): Iterable[Unit] = {
+    bundle.elements.map { case (name, element) =>
       element match {
         case _ => element := DontCare
       }

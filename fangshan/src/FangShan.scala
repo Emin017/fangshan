@@ -87,10 +87,10 @@ class FangShan(val parameter: FangShanParameter)
   val snpc: UInt                            = WireInit("h80000000".U(parameter.width.W))
   val dnpc: UInt                            = WireInit("h80000000".U(parameter.width.W))
 
-  utils.withClockAndReset(ifu.io.elements, implicitClock, implicitReset)
-  utils.withClockAndReset(idu.io.elements, implicitClock, implicitReset)
-  utils.withClockAndReset(exu.io.elements, implicitClock, implicitReset)
-  utils.withClockAndReset(reg.io.elements, implicitClock, implicitReset)
+  utils.withClockAndReset(ifu.io, implicitClock, implicitReset)
+  utils.withClockAndReset(idu.io, implicitClock, implicitReset)
+  utils.withClockAndReset(exu.io, implicitClock, implicitReset)
+  utils.withClockAndReset(reg.io, implicitClock, implicitReset)
 
   io.input.ready := true.B
 

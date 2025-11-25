@@ -44,7 +44,7 @@ class FangShanLSU(val parameter: FangShanLSUParams)
   override protected def implicitClock: Clock = io.clock
   override protected def implicitReset: Reset = io.reset
 
-  utils.dontCarePorts(io.axi.elements)
+  utils.dontCarePorts(io.axi)
 
   val axiIn    = io.axi
   val in       = io.input
