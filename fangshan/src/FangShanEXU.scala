@@ -72,14 +72,20 @@ class FangShanEXU(val parameter: FangShanEXUParams)
 
   val alu: Instance[FangShanALU] = Instantiate(new FangShanALU(parameter.aluParams))
   utils.dontCarePorts(alu.io.elements)
+  dontTouch(alu.io)
+  alu.io.input.rs1         := io.input.bits.srcBundle.rs1
+  alu.io.input.rs2         := io.input.bits.srcBundle.rs2
+  alu.io.input.isAdd       := io.input.bits.ctrlSigs.aluOpcode(0)
+  alu.io.input.isArith     := io.input.bits.ctrlSigs.aluOpcode(1)
+  alu.io.input.func3Opcode := io.input.bits.ctrlSigs.func3Opcode
 
   val res: UInt = WireInit(0.U(parameter.width.W))
-  res := io.input.bits.srcBundle.rs1 + io.input.bits.srcBundle.rs2
+  res := alu.io.output.result
 
   val ebreak: Bool = io.input.bits.ctrlSigs.ebreak
   io.input.ready        := true.B
   io.output.valid       := true.B
-  io.output.bits.update := true.B
+  io.output.bits.update := true.B && !RegNext(io.reset).asBool
   io.output.bits.result := res
   io.output.bits.rd     := io.input.bits.srcBundle.rd
   dontTouch(ebreak)

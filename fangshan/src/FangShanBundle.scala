@@ -35,20 +35,21 @@ class IFUOutputBundle(width: Int) extends Bundle {
 /** CtrlSigBundle, which is used to define the control signals, include [[rd]]
   */
 class CtrlSigBundle(lsOpBits: Int) extends Bundle {
-  val ebreak:    Bool = Bool()
-  val lsuOpcode: UInt = UInt(lsOpBits.W)
-  val aluOpcode: UInt = UInt(2.W)
+  val ebreak:      Bool = Bool()
+  val lsuOpcode:   UInt = UInt(lsOpBits.W)
+  val aluOpcode:   UInt = UInt(2.W)
+  val func3Opcode: UInt = UInt(3.W)
 }
 
-/** ALUInputBundle, which is used to define the input bundle of the ALU, include [[rs1]], [[rs2]], [[opcode]]
+/** ALUInputBundle, which is used to define the input bundle of the ALU, include [[rs1]], [[rs2]], [[func3Opcode]]
   */
 class ALUInputBundle(width: Int) extends Bundle {
-  val rs1:     UInt = UInt(width.W)
-  val rs2:     UInt = UInt(width.W)
-  val pc:      UInt = UInt(width.W)
-  val opcode:  UInt = UInt(3.W) // Use func3 to define ALU operation
-  val isAdd:   Bool = Bool()
-  val isArith: Bool = Bool()
+  val rs1:         UInt = UInt(width.W)
+  val rs2:         UInt = UInt(width.W)
+  val pc:          UInt = UInt(width.W)
+  val func3Opcode: UInt = UInt(3.W) // Use func3 to define ALU operation
+  val isAdd:       Bool = Bool()
+  val isArith:     Bool = Bool()
 }
 
 class ALUOutputBundle(width: Int) extends Bundle {

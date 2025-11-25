@@ -69,7 +69,7 @@ class FangShanTestBench(val parameter: FangShanTestBenchParameter)
   // We need use probe.read to read the probe value, otherwise chisel will report stack overflow.
   // FIXME: Check why chisel will report stack overflow when using probe directly.
   val fangshanProbe: FangShanProbe = probe.read(dut.io.probe)
-  val hitGoodTrap:   Bool          = RegNext(fangshanProbe.hitGoodTrap)
+  val hitGoodTrap:   Bool          = fangshanProbe.hitGoodTrap
   val busy:          Bool          = fangshanProbe.busy
 
   // Simulation Logic
@@ -78,26 +78,17 @@ class FangShanTestBench(val parameter: FangShanTestBenchParameter)
 
   val running: Bool = simulationTime > 0.U && simulationTime < parameter.timeout.U
 
-  val (_, callWatchdog) = Counter(true.B, parameter.timeout / 2)
+  val (_, callWatchdog) = Counter(true.B, parameter.timeout)
   val watchdogCode: UInt = RawUnclockedNonVoidFunctionCall("fangshan_watchdog", UInt(8.W))(callWatchdog)
 
   // Stop simulation when watchdogCode is not 0 or the DUT is not busy after reset cycle.
   val stopCondition: Bool = (watchdogCode =/= 0.U) ||
-    (!dut.io.reset.asBool && !busy && running)
+    (!dut.io.reset.asBool && !busy && running) || hitGoodTrap
   when(stopCondition) {
+    printf("Hit trap: isGood trap = %d\n", hitGoodTrap.asUInt)
     stop(cf"""{"event":"SimulationStop","reason": ${watchdogCode},"cycle":${simulationTime}}\n""")
   }
 
-  // Trigger simulation abort when hit bad trap.
-  // Stop simulation when hit good trap.
-  // FIXME: This will create a extra cycle when hit good/bad trap, we need to fix it.
-  when(running && !busy) {
-    when(hitGoodTrap) {
-      stop(cf"""{"event":"SimulationStop","reason": hit good trap,"cycle":${simulationTime}}\n""")
-    }.elsewhen(!hitGoodTrap) {
-      assert(false.B, cf"""{"event":"SimulationAbort","reason": hit bad trap,"cycle":${simulationTime}}\n""")
-    }
-  }
   dut.io.input.valid := false.B;
   dut.io.input.bits  := DontCare;
 }

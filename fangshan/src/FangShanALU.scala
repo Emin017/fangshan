@@ -23,7 +23,7 @@ class FangShanALUInterface(parameter: FangShanALUParams) extends Bundle {
   */
 @instantiable
 class FangShanALU(val parameter: FangShanALUParams) extends FixedIORawModule(new FangShanALUInterface(parameter)) {
-  val aluOp = io.input.opcode
+  val aluOp = io.input.func3Opcode
 
   val src1 = io.input.rs1
   val src2 = io.input.rs2

@@ -59,9 +59,9 @@ class FangShanIFU(val parameter: FangShanIFUParams)
   M.io.read.bits.address := io.input.bits.address
   // We want cpu start fetching signal after the reset signal is released,
   // so we use RegNext to delay the signal.
-  M.io.read.valid        := RegNext(io.input.valid)
+  M.io.read.valid        := io.input.valid
   // Same as the read.valid above
-  io.output.valid        := (M.io.dataOut =/= 0.U) && io.input.valid && !RegNext(io.reset).asBool
+  io.output.valid        := (M.io.dataOut =/= 0.U) && io.input.valid
   io.output.bits.inst    := M.io.dataOut
 
   dontTouch(io.output.bits.inst)
