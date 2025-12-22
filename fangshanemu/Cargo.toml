@@ -9,7 +9,7 @@ rand = "0.9"
 num-traits = "0.2.19"
 num-bigint = { version = "0.4.6", features = ["rand"] }
 tracing = "0.1.41"
-tracing-subscriber = { version = "0.3.20", features = ["env-filter", "ansi"] }
+tracing-subscriber = { version = "0.3.22", features = ["env-filter", "ansi"] }
 
 [features]
 sv2023 = ["svdpi/sv2023"]
